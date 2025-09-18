@@ -15,6 +15,11 @@ Information on FREAK:
 - https://access.redhat.com/articles/1369543
 - https://freakattack.com/
 
+Previous practical demonstration:
+
+- https://github.com/eniac/faas/tree/master
+- https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
+
 ## Performing the exploit
 
 Todo
