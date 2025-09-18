@@ -7,11 +7,25 @@
 > *en.wikipedia.com/wiki/FREAK, 18 sept 2025*
 
 Information on FREAK:
-- https://nvd.nist.gov/vuln/detail/CVE-2015-0204
+- https://nvd.nist.gov/vuln/detail/CVE-2015-0204 (OpenSSL)
+- https://nvd.nist.gov/vuln/detail/CVE-2015-1637 (Schannel)
+- https://nvd.nist.gov/vuln/detail/CVE-2015-1067 (Secure Transport)
 - https://www.cisa.gov/news-events/alerts/2015/03/06/freak-ssltls-vulnerability
 - https://en.wikipedia.org/wiki/FREAK
 - https://access.redhat.com/articles/1369543
 - https://freakattack.com/
+
+## Performing the exploit
+
+Todo
+
+## Theoretical background
+
+Todo
+
+## Defense against the attack
+
+Todo
 
 ### DD2391 Project Final 18
 
