@@ -4,7 +4,7 @@
 
 > FREAK ("Factoring RSA Export Keys") is a security exploit of a cryptographic weakness in the SSL/TLS protocols introduced decades earlier for compliance with U.S. cryptography export regulations. These involved limiting exportable software to use only public key pairs with RSA moduli of 512 bits or fewer (so-called RSA EXPORT keys), with the intention of allowing them to be broken easily by the National Security Agency (NSA), but not by other organizations with lesser computing resources. However, by the early 2010s, increases in computing power meant that they could be broken by anyone with access to relatively modest computing resources using the well-known Number Field Sieve algorithm, using as little as $100 of cloud computing services.
 > 
-> *en.wikipedia.com/wiki/FREAK, 18 sept 2025*
+> *en.wikipedia.org/wiki/FREAK, 18 sept 2025*
 
 Information on FREAK:
 - https://nvd.nist.gov/vuln/detail/CVE-2015-0204 (OpenSSL)
@@ -15,6 +15,11 @@ Information on FREAK:
 - https://access.redhat.com/articles/1369543
 - https://freakattack.com/
 
+Previous practical demonstration:
+
+- https://github.com/eniac/faas/tree/master
+- https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
+
 ## Performing the exploit
 
 Todo
@@ -22,6 +27,9 @@ Todo
 ## Theoretical background
 
 Todo
+
+- https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
+- https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
 
 ## Defense against the attack
 
