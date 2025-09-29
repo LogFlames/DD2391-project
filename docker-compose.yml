@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  server:
+    build: ./server
+    container_name: freak-server
+    networks:
+      - freaknet
+    ports:
+      - "8443:8443"
+
+  # browser:
+  #   build: ./browser
+  #   container_name: freak-browser
+  #   environment:
+  #     - DISPLAY=${DISPLAY}
+  #   volumes:
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   networks:
+  #     - freaknet
+  #   # Interactive and auto-remove for GUI
+  #   stdin_open: true
+  #   tty: true
+  #   # Remove container on exit
+  #   restart: "no"
+
+  client:
+    build: ./client
+    container_name: freak-client
+    networks:
+      - freaknet
+
+  mitm:
+    build: ./mitm
+    container_name: freak-mitm
+    networks:
+      - freaknet
+
+networks:
+  freaknet:
+    driver: bridge
