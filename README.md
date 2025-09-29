@@ -28,6 +28,9 @@ Todo
 
 Todo
 
+- https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
+- https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
+
 ## Defense against the attack
 
 Todo
