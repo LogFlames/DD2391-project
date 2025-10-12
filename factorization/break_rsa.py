@@ -50,37 +50,37 @@ def main():
     args = parser.parse_args()
 
     if not args.pubkey and not args.modulus:
-        print("Please provide either a public key file or an integer modulus.")
+        print("Please provide either a public key file or a modulus.")
         return
     
     if args.outfile and not args.pubkey:
         print("Output file specified without a public key. Ignoring outfile argument.")
         args.outfile = None
 
-    if args.pubkey and args.N:
-        print("Please provide either a public key file or an integer N, not both.")
+    if args.pubkey and args.modulus:
+        print("Please provide either a public key file or a modulus, not both.")
         return
 
     if args.pubkey:
         try:
-            N = read_n_from_pubkey(args.pubkey)
-            print(f"Read modulus N from public key: {N}")
+            n = read_n_from_pubkey(args.pubkey)
+            print(f"Read modulus N from public key: {n}")
         except Exception as e:
             print(f"Error reading public key: {e}")
             return    
     else:
-        N = args.N
-        print(f"Using provided modulus N: {N}")
+        n = args.modulus
+        print(f"Using provided modulus: {n}")
 
-    if N <= 1:
-        print("N must be a composite integer greater than 1.")
+    if n <= 1:
+        print("Modulus must be a composite integer greater than 1.")
         return
 
-    print(f"Calling Quadratic Sieve to factor N...")
-    ok, p, q = factor_rsa_modulus(N)
+    print(f"Calling Quadratic Sieve to factor modulus...")
+    ok, p, q = factor_rsa_modulus(n)
     if ok:
         print(f"""Factorization successful!
-              {N} =
+              {n} =
               {p}
               *
               {q}
@@ -104,7 +104,7 @@ def main():
                     dmp1=d % (p - 1),
                     dmq1=d % (q - 1),
                     iqmp=pow(q, -1, p),
-                    public_numbers=rsa.RSAPublicNumbers(e, N)
+                    public_numbers=rsa.RSAPublicNumbers(e, n)
                 )
                 private_key = private_numbers.private_key(backend=default_backend())
                 pem = private_key.private_bytes(
