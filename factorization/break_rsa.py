@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Wrapper script for running the implemented QS algorithm for an RSA modulus.
-    Input:  N (assumed to be an RSA modulus, i.e., product of two primes)
-    Output: the factors of N
+    
 
 Written with LLM assistance.
 """
@@ -43,15 +42,15 @@ def generate_private_key(p, q, e):
     return d
 
 def main():
-    parser = argparse.ArgumentParser(description="Quadratic Sieve Factorization")
-    parser.add_argument("-f", "--pubkey", type=str, help="Path to PEM-formatted RSA public key file")
-    parser.add_argument("-N", type=int, help="RSA modulus to factor (composite integer)")
-    parser.add_argument("-e", type=int, default=65537, help="Public exponent (default: 65537)")
-    parser.add_argument("--outfile", type=str, help="Output file for private key (if pubkey provided)")
+    parser = argparse.ArgumentParser(description="QS factorization of RSA modulus to break RSA.")
+    parser.add_argument("--pubkey", type=str, help="Path to PEM-formatted RSA public key file (incompatible with --modulus)")
+    parser.add_argument("--modulus", type=int, help="RSA modulus to factor (incompatible with --pubkey)")
+    parser.add_argument("--e", type=int, default=65537, help="Public exponent (default: 65537)")
+    parser.add_argument("--outfile", type=str, help="Output file for private key")
     args = parser.parse_args()
 
-    if not args.pubkey and not args.N:
-        print("Please provide either a public key file or an integer N.")
+    if not args.pubkey and not args.modulus:
+        print("Please provide either a public key file or an integer modulus.")
         return
     
     if args.outfile and not args.pubkey:
