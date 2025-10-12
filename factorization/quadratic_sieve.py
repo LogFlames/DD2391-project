@@ -3,6 +3,8 @@ def quadratic_sieve(N):
     Quadratic Sieve algorithm (simplified pseudocode)
     Input:  N (composite integer)
     Output: a nontrivial factor of N
+
+    Pseudocode author: ChatGPT.
     """
 
     # -------------------------------
