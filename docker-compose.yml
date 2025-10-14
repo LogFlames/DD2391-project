@@ -7,6 +7,8 @@ services:
       - freaknet
     ports:
       - "8443:8443"
+    volumes:
+      - server_certs:/shared_certs
 
   # browser:
   #   build: ./browser
@@ -28,6 +30,8 @@ services:
     container_name: freak-client
     networks:
       - freaknet
+    volumes:
+      - server_certs:/shared_certs
 
   mitm:
     build: ./mitm
@@ -38,3 +42,7 @@ services:
 networks:
   freaknet:
     driver: bridge
+
+volumes:
+  server_certs:
+    driver: local
