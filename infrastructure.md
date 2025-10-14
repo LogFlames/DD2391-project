@@ -14,7 +14,9 @@ backported the patch in their own package and the openssl version installed by d
 
 If a ClientHello includes export ciphers (or a mitm modifies it to do so ;) ) and the server supports them, the server will respond
 with ServerHello, its Certificate and a ServerKeyExchange message containing a temporary RSA key. Note that the ServerKeyExchange message would not be sent in a normal RSA handshake without export ciphers, because the server's certificate already contains the public key. However, even if the old client didn't send export ciphers in ClientHello, if it receives a ServerKeyExchange message, it will accept it and use the temporary RSA key to encrypt the premaster secret. This is what makes the FREAK attack possible and what was fixed by this [commit](https://git.openssl.org/gitweb/?p=openssl.git;a=commit;h=5f0d4f7f6f1b8e3f4c3e2e6f4b5a5c6c3e2e6f4b).
-The commit adds a check to verify that the ServerKeyExchange message is not sent in a non-export RSA handshake.
+The commit adds a check to verify that the ServerKeyExchange message is not sent in a non-export RSA handshake. If the check
+detects an anomaly it aborts the handshake and returns UnexpectedMessage. This is what was happening when we tried to test our mitm
+with the 1.0.1f client that comes with ubuntu 14.04, before we realized the patch was backported.
 
 ## MitM
 
