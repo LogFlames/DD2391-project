@@ -41,6 +41,13 @@ We have to also test with other vulnerable clients as they might not care about 
 
 Internet explorer 11 in Windows 7 is vulnerable to FREAK. This [VM](https://archive.org/download/modern.ie-vm/IE11.Win7.VirtualBox.zip) can be used to test the attack from a browser. [WIP]
 
+Instructions to setup the VM:
+1. Download and unzip the VM image, then import it in VirtualBox (File -> Import Appliance).
+2. Create a Host-Only network adapter in VirtualBox (File -> Tools -> Network Manager -> Host-Only Networks -> Create).
+3. Set the VM's network adapter to Host-Only and select the adapter created in the previous step.
+4. On the host, check your IP address on the Host-Only network (e.g. `ip addr show vboxnet0`).
+5. Start the VM and connect to the host using the previously determined IP address (e.g. `https://<host-ip>`).
+
 ## References
 
 [1] https://blog.cryptographyengineering.com/2015/03/03/attack-of-week-freak-or-factoring-nsa/
