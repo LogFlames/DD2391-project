@@ -1,3 +1,11 @@
+"""
+Python REPL helper functions. Run using:
+$ python -i qs_repl_helper.py
+
+or to run sieve automatically:
+$ python -i qs_repl_helper.py <bits>
+"""
+
 from quadratic_sieve import *
 from Crypto.Util import number
 
