@@ -81,8 +81,6 @@ $$
 
 ### Sieving
 
-### Sieving
-
 With the factor base determined, we sieve through the sieving interval $x$, calculate $Q(x)$, and check if $Q(x)$ factors completely over our factor base. If it does, it is said to have **smoothness**  *(be $B$-smooth)*. If it does not, we throw it out - since we only want $B$-smooth numbers.
 
 Instead of testing every $Q(x)$ one by one (which is slow), we use a sieving trick to quickly find all $Q(x)$ that are likely smooth.
