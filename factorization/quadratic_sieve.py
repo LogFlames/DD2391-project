@@ -2,105 +2,15 @@ import numpy as np
 import math
 from sympy import sqrt_mod, isprime
 
-
-def find_left_nullspace_basis_vectors(
-    A: np.ndarray
-    ) -> list[np.ndarray]:
-    """
-    Find a basis for the nullspace of the given binary matrix mod 2.
-    
-    :param mtx np.ndarray: binary exponent matrix (mod 2)
-    :return list[np.ndarray]: list of nullspace basis vectors
-    """
-    # We want the left nullspace of A,
-    # i.e. to find basis vectors e such that eA = 0 (mod 2).
-    # since A is given as rows of relations Q(x),
-    # and ordinary RREF finds the right nullspace.
-    A = A.transpose()
-
-
-    # Perform Gaussian elimination mod 2 to get RREF
-    R, pivot_cols = rref_gf2(A)
-    n_rows, n_cols = R.shape
-
-    # Identify non-pivot (free) columns
-    free_cols = []
-    i = 0
-    for j in range(n_cols):
-        if i >= n_rows or j < pivot_cols[i]:
-            free_cols.append(j)
-        else:
-            i += 1
-    
-    # Construct nullspace basis vectors
-    basis = []
-    for x_f in free_cols:
-        # Each free column gives one 
-        # basis vector of the nullspace
-        vec = np.zeros(n_cols, dtype=int)
-        """
-        fix x_f = 1 for free_col,
-        x_j = 0 for other free columns.
-        Then, include x_i in the basis vector
-        if R[i, free_col] == 1,
-        that is, if x_f appears in the equation for x_i.
-        Note that x_i lives at pivot_cols[i].
-        """
-
-        vec[x_f] = 1
-        for i in range(n_rows):
-            if R[i, x_f] == 1:
-                x_i  =  pivot_cols[i]
-                vec[x_i] = 1
-        basis.append(vec)
-
-    return basis
-
-def rref_gf2(
-        A: np.ndarray
-        ) -> np.ndarray:
-    """Gaussian elimination mod 2 to convert A into RREF form.
-
-    RREF - Reduced Row Echelon Form. 
-    
-    :param mtx np.ndarray: binary exponent matrix (mod 2)
-    :return np.ndarray: RREF form of the input matrix
-    """
-
-    A = A.copy()  # don't modify input
-    
-    n_rows, n_cols = A.shape
-
-    pivot_row = 0
-    pivot_cols = [-1] * n_rows
-    for j in range(n_cols):
-        # find a row (pivot prime) that includes Q(x)
-        for i in range(pivot_row, n_rows):
-            if A[i, j] == 1: break
-        else: continue # Q(x) is already reduced
-
-        # Swap pivot_row and i, to put into row echelon form.
-        # This does not change the nullspace of A,
-        # because we are just reordering prime composition,
-        # not changing the location of Q(x)
-        # (which are currently columns of A).
-        
-        A[[pivot_row, i]] = A[[i, pivot_row]]
-        pivot_cols[i] = j # pivot i found in column j
-
-        # eliminate Q(x) from all other rows
-        for i in range(n_rows):
-            if i != pivot_row and A[i, j] == 1:
-                A[i] ^= A[pivot_row]  # XOR operation (mod 2 addition)
-        
-        pivot_row += 1
-    
-    return A, pivot_cols
-
-# Euler's criterion: (n/p) ≡ n^((p-1)/2) (mod p)
-# If the result is 1, then n is a quadratic residue mod p.
-# Checks if N is a quadratic residue modulo p.
 def euler_criterion(N, p):
+    """
+    Checks if N is a quadratic residue module p using Euler's Criterion.
+    (i.e., evaluating whether the Legendre symbol (N/p) is 1.)
+    
+    Euler's criterion: (n/p) ≡ n^((p-1)/2) (mod p)
+    
+    If the result is 1, then n is a quadratic residue mod p.
+    """
     if p == 2:      # Euler's criterion doesn't work for 2 because it's not an odd number
         return N % 2 == 1
     elif N % p == 0:
@@ -108,11 +18,14 @@ def euler_criterion(N, p):
     else:
         return pow(N, (p-1)//2, p) == 1    # pow(base, exp, mod)
 
-# Given probable smooth (x, y) pairs, return a list of (x, [exponents]) where
-# exponents[i] = exponent of factor_base[i] in the factorization of y = x^2 - N.
-# (Only returns relations that are completely factored over the factor base.
-# It uses trial division - only for the probable smooth numbers we found before.)
 def find_exponents(probable_smooth, factor_base):
+    """
+    Given probable smooth (x, y) pairs, return a list of (x, [exponents]) where
+    exponents[i] = exponent of factor_base[i] in the factorization of y = x^2 - N.
+    
+    (Only returns relations that are completely factored over the factor base.
+    It uses trial division - only for the probable smooth numbers we found before.)
+    """
 
     results = []
 
@@ -139,8 +52,10 @@ def find_exponents(probable_smooth, factor_base):
 
     return results
 
-# 3. Search for "B-smooth" Q(x) = x² - N
 def sieving(N, factor_base, M):
+    """
+    Sieve for "B-smooth" numbers Q(x) = x² - N
+    """
     sqrt_N = math.isqrt(N)      # the square root of N rounded down (like: floor(sqrt(N)))
     interval = range(-M, M+1)   # range(-M, M)
     probable_smooth = set()     # a set to avoid duplicates
@@ -185,23 +100,132 @@ def sieving(N, factor_base, M):
 
     return probable_smooth
 
-
-def quadratic_sieve(N: int):
+def find_left_nullspace_basis_vectors(
+    A: np.ndarray
+    ) -> list[np.ndarray]:
     """
-    Quadratic Sieve algorithm (simplified pseudocode)
+    Find a basis for the left nullspace of the given binary matrix mod 2.
+    
+    :param mtx np.ndarray: binary exponent matrix (mod 2)
+    :return list[np.ndarray]: list of left nullspace basis vectors
+    """
+    # We want the left nullspace of A,
+    # i.e. to find basis vectors e such that eA = 0 (mod 2).
+    # since A is given as rows of relations Q(x),
+    # and ordinary RREF finds the right nullspace.
+    A_T = A.transpose()
+
+    # Perform Gaussian elimination mod 2 to get RREF
+    R, pivot_cols = rref_gf2(A_T)
+    n_rows, n_cols = R.shape
+
+    # Identify non-pivot (free) columns
+    free_cols = [j for j in range(n_cols) if j not in pivot_cols]
+    
+    # Construct nullspace basis vectors
+    basis = []
+    for x_f in free_cols:
+        # Each free column gives one 
+        # basis vector of the nullspace
+        vec = np.zeros(n_cols, dtype=int)
+        """
+        fix x_f = 1 for free_col,
+        x_j = 0 for other free columns.
+        Then, include x_i in the basis vector
+        if R[i, free_col] == 1,
+        that is, if x_f appears in the equation for x_i.
+        Note that x_i lives at pivot_cols[i].
+        """
+
+        vec[x_f] = 1
+        for i in range(n_rows):
+            if R[i, x_f] == 1:
+                x_i = pivot_cols[i]
+                vec[x_i] = 1
+        basis.append(vec)
+
+    return basis
+
+def rref_gf2(
+        A: np.ndarray
+        ) -> np.ndarray:
+    """Gaussian elimination mod 2 to convert A into RREF form.
+
+    RREF - Reduced Row Echelon Form. 
+    
+    :param mtx np.ndarray: binary exponent matrix (mod 2)
+    :return np.ndarray: RREF form of the input matrix
+    :return list[int]: list of pivot column indices for each row, -1 if no pivot in that row
+    """
+
+    A = A.copy()  # don't modify input
+    
+    n_rows, n_cols = A.shape
+
+    pivot_row = 0
+    pivot_cols = [-1] * n_rows
+    for j in range(n_cols):
+        # find a row (pivot prime) that includes Q(x)
+        for i in range(pivot_row, n_rows):
+            if A[i, j] == 1: break
+        else: continue # Q(x) is already reduced
+
+        # Swap pivot_no and i, to put into row echelon form.
+        # This does not change the nullspace of A,
+        # because we are just reordering prime composition,
+        # not changing the location of Q(x)
+        # (which are currently columns of A).
+        
+        A[[pivot_row, i]] = A[[i, pivot_row]]
+        pivot_cols[pivot_row] = j # pivot i found in column j
+
+        # eliminate Q(x) from all other rows
+        for i in range(n_rows):
+            if i != pivot_row and A[i, j] == 1:
+                A[i] ^= A[pivot_row]  # XOR operation (mod 2 addition)
+        
+        pivot_row += 1
+    
+    return A, pivot_cols
+
+perf_time_array: list[(str, float)]
+
+def get_timing() -> list[(str, float)]:
+    global perf_time_array
+    return perf_time_array
+
+def print_timing():
+    global perf_time_array
+    init_t = perf_time_array[0][1]
+    prev_t = init_t
+    for s, t in perf_time_array:
+        print(f"{s}: {t-prev_t:.3f} s, total: {t - init_t:.3f} s")
+        prev_t = t
+
+def quadratic_sieve(N: int, B: int|str="auto", DEBUG: bool=False, TIMING: bool=False) -> int:
+    """
+    Quadratic Sieve algorithm
     Input:  N (composite integer)
     Output: a nontrivial factor of N
 
     Pseudocode author: ChatGPT.
+    Code authors: Venetia Ioanna Papadopoulou and Eskil Nyberg
     """
 
-    # 1. Choose B using a heuristic formula.
+    if TIMING: import time; global perf_time_array; perf_time_array = []; perf_time_array.append(("init", time.perf_counter()))
+
+    # 1. Parameter selection (B and M)
+
     # B controls the size of the factor base.
-    # B = math.exp(0.5 * math.sqrt(math.log(N) * math.log(math.log(N))))
-    B = 50
+    if B == "auto":
+        B = math.exp(0.7 * math.sqrt(math.log(N) * math.log(math.log(N))))
+    elif type(B) == str:
+        raise ValueError("B must be an integer or 'auto'")
 
     # M defines the interval [-M, M] around sqrt(N) where we search for B-smooth numbers
     M = int(pow(B, 2))
+
+    if TIMING: perf_time_array.append(("1.", time.perf_counter()))
 
     # 2. Build the factor base of small primes.
     # It contains only primes p where N is a quadratic residue mod p.
@@ -210,34 +234,43 @@ def quadratic_sieve(N: int):
         if isprime(p) and euler_criterion(N, p) == True:
             factor_base.append(p)
 
-    print("Factor base:", factor_base)
-    print("B:", B, "M:", M)
+    if TIMING: perf_time_array.append(("2.", time.perf_counter()))
+    if DEBUG:
+        print("B:", B, "M:", M)
+        print("Factor base:", factor_base)
+        if TIMING: perf_time_array.append(("2.DEBUG", time.perf_counter()))
 
     # 3. Find probable B-smooth numbers
     probable_smooth = sieving(N, factor_base, M)
 
-    print("\nProbable smooth numbers (x, Q(x)):")
-    for x, y in probable_smooth:
-        print(f"x={x}, Q(x)={y}")
+    if TIMING: perf_time_array.append(("3.", time.perf_counter()))
+    if DEBUG:
+        print("\nProbable smooth numbers (x, Q(x)):")
+        for x, y in probable_smooth:
+            print(f"x={x}, Q(x)={y}")
+        if TIMING: perf_time_array.append(("3.DEBUG", time.perf_counter()))
 
-    # 4. Build the exponents matrix
+    # 4 pt 1. Find the exponents
     relations = find_exponents(probable_smooth, factor_base)
     relations = [(x, exp) for x, exp in relations if x > 0]
 
-    print("\nRelations with full factorization over the factor base:")
-    for x, exponents in relations:
-        print(f"x={x}, exponents={exponents}")
+    if TIMING: perf_time_array.append(("4p1.", time.perf_counter()))
+    if DEBUG:
+        print("\nRelations with full factorization over the factor base:")
+        for x, exponents in relations:
+            print(f"x={x}, exponents={exponents}")
+        if TIMING: perf_time_array.append(("4p1.DEBUG", time.perf_counter()))
 
-    # IOANNA: I am assuming that relations have the structure
-    # [(x1, [e11, e12, e13, ...]), ...]
-    # where [eij] is the exponents of the prime factors of Q(x_i)
-    # and factor_base is the list of primes [p1, p2, p3, ...],
-    # of length B.
-    # Feel free to refactor step 4 as needed!
-
-    # 4. Build A, the exponent matrix mod 2
+    # 4 pt 2. Build A, the exponent matrix mod 2
     A = np.array([exponents for _, exponents in relations], dtype=int)
     A = (A % 2).astype(bool)
+
+    if TIMING: perf_time_array.append(("4p2.", time.perf_counter()))
+    if DEBUG:
+        print("\nExponent matrix A (mod 2):")
+        print(f"- Shape of A: {A.shape}")
+        print(A.astype(int))
+        if TIMING: perf_time_array.append(("4p2.DEBUG", time.perf_counter()))
 
     # 5. Find left nullspace basis vectors
     # i.e. linear dependencies mod 2
@@ -246,7 +279,25 @@ def quadratic_sieve(N: int):
     #   multiply to a square, Y²
     nullspace_basis_vectors = find_left_nullspace_basis_vectors(A)
 
+    if TIMING: perf_time_array.append(("5.", time.perf_counter()))
+    if DEBUG:
+        print("\nLeft nullspace basis vectors:")
+        print(f"- Number of basis vectors: {len(nullspace_basis_vectors)}")
+        print(f"- Shape of basis vectors: {nullspace_basis_vectors[0].shape if nullspace_basis_vectors else 'N/A'}")
+        for vec in nullspace_basis_vectors:
+            print(vec)
+        if TIMING: perf_time_array.append(("5.DEBUG", time.perf_counter()))
+    
+    if DEBUG:
+        # Verify nullspace basis vectors
+        for vec in nullspace_basis_vectors:
+            result = (vec @ A) % 2
+            if not np.all(result == 0):
+                print((vec @ A) % 2)
+                assert False, "Nullspace basis vector does not satisfy eA = 0 (mod 2)"
+
     # 6. Try basis vectors until a nontrivial factor is found
+    if DEBUG: runs = 1
     for vec in nullspace_basis_vectors:
         # Compute X and Y from the subset of relations
         X = 1
@@ -260,7 +311,6 @@ def quadratic_sieve(N: int):
         # Y² = ∏ p_j^(e_j) where e_j are even
         # so Y = ∏ p_j^(e_j/2)
         Y_exponents = [int(e) for e in (Y2_exponents // 2)]
-        # Y_exponents = Y2_exponents // 2
 
         Y = 1
         for j, exp in enumerate(Y_exponents):
@@ -270,15 +320,22 @@ def quadratic_sieve(N: int):
         # and test for nontrivial factor
         g = np.gcd(X - Y, N)
         if 1 < g < N:
+            if DEBUG: print(f"\nFound a nontrivial factor after {runs} basis vectors: {g}\n")
+            if TIMING: perf_time_array.append(("6+7.", time.perf_counter()))
             return g
         else:
+            if DEBUG: runs += 1
             continue # try next basis vector
     else:
+        if DEBUG: print(f"\nTried all {len(nullspace_basis_vectors)} basis vectors, but found no nontrivial factor.\n")
+        if TIMING: perf_time_array.append(("6+7.FAIL", time.perf_counter()))
         raise ValueError("Failed to find a nontrivial factor; try increasing B.")
 
 
-# Prime number to be factored
-N = 227179   # small test number
+if __name__ == "__main__":
+    # Prime number to be factored
+    N = 227179   # small test number
+    B = 50
 
-factor = quadratic_sieve(N)
-print(f"factor: {factor}")
+    factor = quadratic_sieve(N, B=B, DEBUG=True)
+    print(f"factor: {factor}")
