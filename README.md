@@ -24,9 +24,9 @@ Previous practical demonstration:
 - https://github.com/eniac/faas/tree/master
 - https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
 
-## Presentation
+## Presentation (Google Slides)
 
-[DD2391 Project - Final Group 18](https://docs.google.com/presentation/d/1Ma8DdMEyfZuG2-iaYIO6c-XB07Kh5vx1UhjnjDeAjVI/edit?usp=sharing)
+[DD2391 Project - Final Group 18 - FREAK](https://docs.google.com/presentation/d/1Ma8DdMEyfZuG2-iaYIO6c-XB07Kh5vx1UhjnjDeAjVI/edit?usp=sharing)
 
 ## Technical documentation
 
