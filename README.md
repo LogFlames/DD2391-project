@@ -8,6 +8,9 @@
 
 ## Table of Contents
 
+[**FREAK (CVE-2015-0204)**](#freak-cve-2015-0204)
+
+0. [**Table of Contents**](#table-of-contents)
 1. [**About FREAK**](#about-freak)
 1. [**Technical documentation**](#technical-documentation)
    1. [**About RSA**](#about-rsa)
@@ -21,8 +24,8 @@
    1. [**Using Factorization**](#using-factorization)
 1. [**Mitigation / Defense against the attack**](#1-about-freak)
 
-<!--
--->
+---
+
 [**Various project information**](#various-project-information)
 1. [**The usage of LLM:s, AI and borrowed code**](#the-usage-of-llms-ai-and-borrowed-code)
 2. [**Contribution documentation**](#contribution-documentation)
