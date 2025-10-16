@@ -6,6 +6,35 @@
 > 
 > *en.wikipedia.org/wiki/FREAK, 18 sept 2025*
 
+## Table of Contents
+
+[**FREAK (CVE-2015-0204)**](#freak-cve-2015-0204)
+
+0. [**Table of Contents**](#table-of-contents)
+1. [**About FREAK**](#about-freak)
+1. [**Technical documentation**](#technical-documentation)
+   1. [**About RSA**](#about-rsa)
+   1. [**DNS cache poisoning**](#dns-cache-poisoning)
+   1. [**FREAK (MitM)**](#freak-mitm)
+   1. [**Factorization**](#factorization)
+   1. [**Breaking encryption**](#breaking-encryption)
+1. [**Performing the exploit**](#performing-the-exploit)
+   1. [**Using DNS cache poisoning**](#using-dns-cache-poisoning)
+   1. [**Using MitM**](#using-mitm)
+   1. [**Using Factorization**](#using-factorization)
+1. [**Mitigation / Defense against the attack**](#1-about-freak)
+
+---
+
+[**Various project information**](#various-project-information)
+1. [**The usage of LLM:s, AI and borrowed code**](#the-usage-of-llms-ai-and-borrowed-code)
+2. [**Contribution documentation**](#contribution-documentation)
+3. [**Presentation material**](#presentation-material)
+
+## About FREAK
+
+Broad introduction
+
 Information on FREAK:
 - https://nvd.nist.gov/vuln/detail/CVE-2015-0204 (OpenSSL)
 - https://nvd.nist.gov/vuln/detail/CVE-2015-1637 (Schannel)
@@ -20,23 +49,74 @@ Previous practical demonstration:
 - https://github.com/eniac/faas/tree/master
 - https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
 
+## Technical documentation
+
+### About RSA
+
+Eskil and Ioanna
+
+### DNS cache poisoning
+
+Elias
+
+### FREAK (MitM)
+
+Alexandru
+
+### Factorization
+
+Eskil and Ioanna
+
+### Breaking encryption
+
+Alexandru
+
 ## Performing the exploit
 
+### Using DNS cache poisoning
+
+Elias
+
+### Using MitM
+
+Alexandru
+
+### Using factorization
+
+Eskil and Ioanna
+
+## Mitigation/Defense against the attack
+
 Todo
 
-## Theoretical background
-
-Todo
-
-- https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
-- https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
-- https://math.dartmouth.edu/~carlp/PDF/qs08.pdf
-- https://www.csc.kth.se/~joel/qs.pdf
-
-## Defense against the attack
-
-Todo
-
-### DD2391 Project Final 18
+## DD2391 Project Final 18
 
 By: Alexandru Carp, Elias Lundell, Eskil Nyberg, Venetia Ioanna Papadopoulou
+
+# Various project information
+
+## The usage of LLM:s, AI and borrowed code
+
+TODO
+
+## Contribution documentation
+
+### Alexandru Carp
+
+TODO
+
+### Elias Lundell
+
+TODO
+
+### Eskil Nyberg
+
+TODO
+
+### Venetia Ioanna Papadopoulou
+
+TODO
+
+## Presentation material
+
+Google Slides: [DD2391 Project - Final Group 18 - FREAK](https://docs.google.com/presentation/d/1Ma8DdMEyfZuG2-iaYIO6c-XB07Kh5vx1UhjnjDeAjVI/edit?usp=sharing)

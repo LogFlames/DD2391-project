@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from sympy import sqrt_mod, isprime
+from numba import njit
 
 def euler_criterion(N, p):
     """
@@ -18,6 +19,7 @@ def euler_criterion(N, p):
     else:
         return pow(N, (p-1)//2, p) == 1    # pow(base, exp, mod)
 
+@njit
 def find_exponents(probable_smooth, factor_base):
     """
     Given probable smooth (x, y) pairs, return a list of (x, [exponents]) where
@@ -194,15 +196,26 @@ def get_timing() -> list[(str, float)]:
     global perf_time_array
     return perf_time_array
 
-def print_timing():
+def print_timing(include_debug=False):
     global perf_time_array
     init_t = perf_time_array[0][1]
     prev_t = init_t
+    print("\nTiming:")
     for s, t in perf_time_array:
+        if not include_debug and ("DEBUG" in s or s == "init"):
+            continue
         print(f"{s}: {t-prev_t:.3f} s, total: {t - init_t:.3f} s")
         prev_t = t
+    print()
 
-def quadratic_sieve(N: int, B: int|str="auto", DEBUG: bool=False, TIMING: bool=False) -> int:
+def quadratic_sieve(
+        N: int,
+        B: int|str="auto",
+        threads: int=1,
+        DEBUG: int=0,
+        TIMING: bool=False,
+        RETRIES: int=0
+        ) -> int:
     """
     Quadratic Sieve algorithm
     Input:  N (composite integer)
@@ -218,14 +231,15 @@ def quadratic_sieve(N: int, B: int|str="auto", DEBUG: bool=False, TIMING: bool=F
 
     # B controls the size of the factor base.
     if B == "auto":
-        B = math.exp(0.7 * math.sqrt(math.log(N) * math.log(math.log(N))))
+        B = math.exp(0.5 * math.sqrt(math.log(N) * math.log(math.log(N))))
+        B = max(100, B)
     elif type(B) == str:
         raise ValueError("B must be an integer or 'auto'")
 
     # M defines the interval [-M, M] around sqrt(N) where we search for B-smooth numbers
     M = int(pow(B, 2))
 
-    if TIMING: perf_time_array.append(("1.", time.perf_counter()))
+    if TIMING: perf_time_array.append(("1", time.perf_counter()))
 
     # 2. Build the factor base of small primes.
     # It contains only primes p where N is a quadratic residue mod p.
@@ -234,43 +248,53 @@ def quadratic_sieve(N: int, B: int|str="auto", DEBUG: bool=False, TIMING: bool=F
         if isprime(p) and euler_criterion(N, p) == True:
             factor_base.append(p)
 
-    if TIMING: perf_time_array.append(("2.", time.perf_counter()))
-    if DEBUG:
-        print("B:", B, "M:", M)
-        print("Factor base:", factor_base)
+    if TIMING: perf_time_array.append(("2", time.perf_counter()))
+    if DEBUG > 0:
+        print("\nParameters:")
+        print(f"- B: {int(B)+1}\n- M: {M}\n- Size of factor base: {len(factor_base)}")
+        if DEBUG > 1: print("Factor base:", factor_base)
+        print("\nSieving...")
         if TIMING: perf_time_array.append(("2.DEBUG", time.perf_counter()))
 
     # 3. Find probable B-smooth numbers
     probable_smooth = sieving(N, factor_base, M)
 
-    if TIMING: perf_time_array.append(("3.", time.perf_counter()))
-    if DEBUG:
-        print("\nProbable smooth numbers (x, Q(x)):")
-        for x, y in probable_smooth:
-            print(f"x={x}, Q(x)={y}")
+    if TIMING: perf_time_array.append(("3", time.perf_counter()))
+    if DEBUG > 0:
+        print(f"Number of probable smooth numbers found: {len(probable_smooth)}")
+        if DEBUG > 1:
+            print("\nProbable smooth numbers (x, Q(x)):")
+            for x, y in probable_smooth:
+                print(f"x={x}, Q(x)={y}")
+        print("\nVerifying smoothness and finding exponents...")
         if TIMING: perf_time_array.append(("3.DEBUG", time.perf_counter()))
 
     # 4 pt 1. Find the exponents
     relations = find_exponents(probable_smooth, factor_base)
     relations = [(x, exp) for x, exp in relations if x > 0]
 
-    if TIMING: perf_time_array.append(("4p1.", time.perf_counter()))
-    if DEBUG:
-        print("\nRelations with full factorization over the factor base:")
-        for x, exponents in relations:
-            print(f"x={x}, exponents={exponents}")
-        if TIMING: perf_time_array.append(("4p1.DEBUG", time.perf_counter()))
+    if TIMING: perf_time_array.append(("X", time.perf_counter()))
+    if DEBUG > 0:
+        print(f"Number of relations (fully factored over the factor base): {len(relations)}")
+        if DEBUG > 1:
+            print("\nRelations with full factorization over the factor base:")
+            for x, exponents in relations:
+                print(f"x={x}, exponents={exponents}")
+        print("\nBuilding A...")
+        if TIMING: perf_time_array.append(("X.DEBUG", time.perf_counter()))
 
     # 4 pt 2. Build A, the exponent matrix mod 2
     A = np.array([exponents for _, exponents in relations], dtype=int)
     A = (A % 2).astype(bool)
 
-    if TIMING: perf_time_array.append(("4p2.", time.perf_counter()))
-    if DEBUG:
-        print("\nExponent matrix A (mod 2):")
-        print(f"- Shape of A: {A.shape}")
-        print(A.astype(int))
-        if TIMING: perf_time_array.append(("4p2.DEBUG", time.perf_counter()))
+    if TIMING: perf_time_array.append(("4", time.perf_counter()))
+    if DEBUG > 0:
+        print(f"Shape of exponent matrix A: {A.shape}")
+        if DEBUG > 1:
+            print("\nExponent matrix A (mod 2):")
+            print(A.astype(int))
+        print("\nFinding left nullspace basis vectors...")
+        if TIMING: perf_time_array.append(("4.DEBUG", time.perf_counter()))
 
     # 5. Find left nullspace basis vectors
     # i.e. linear dependencies mod 2
@@ -279,23 +303,17 @@ def quadratic_sieve(N: int, B: int|str="auto", DEBUG: bool=False, TIMING: bool=F
     #   multiply to a square, Y²
     nullspace_basis_vectors = find_left_nullspace_basis_vectors(A)
 
-    if TIMING: perf_time_array.append(("5.", time.perf_counter()))
-    if DEBUG:
-        print("\nLeft nullspace basis vectors:")
+    if TIMING: perf_time_array.append(("5", time.perf_counter()))
+    if DEBUG > 0:
+        print("Left nullspace basis vectors:")
         print(f"- Number of basis vectors: {len(nullspace_basis_vectors)}")
         print(f"- Shape of basis vectors: {nullspace_basis_vectors[0].shape if nullspace_basis_vectors else 'N/A'}")
-        for vec in nullspace_basis_vectors:
-            print(vec)
+        if DEBUG > 1:
+            for vec in nullspace_basis_vectors:
+                print(vec)
+        print("\nTrying basis vectors to find a nontrivial factor...")
         if TIMING: perf_time_array.append(("5.DEBUG", time.perf_counter()))
     
-    if DEBUG:
-        # Verify nullspace basis vectors
-        for vec in nullspace_basis_vectors:
-            result = (vec @ A) % 2
-            if not np.all(result == 0):
-                print((vec @ A) % 2)
-                assert False, "Nullspace basis vector does not satisfy eA = 0 (mod 2)"
-
     # 6. Try basis vectors until a nontrivial factor is found
     if DEBUG: runs = 1
     for vec in nullspace_basis_vectors:
@@ -320,16 +338,21 @@ def quadratic_sieve(N: int, B: int|str="auto", DEBUG: bool=False, TIMING: bool=F
         # and test for nontrivial factor
         g = np.gcd(X - Y, N)
         if 1 < g < N:
-            if DEBUG: print(f"\nFound a nontrivial factor after {runs} basis vectors: {g}\n")
-            if TIMING: perf_time_array.append(("6+7.", time.perf_counter()))
+            if DEBUG: print(f"Found a nontrivial factor after {runs} basis vectors: {g}\n")
+            if TIMING: perf_time_array.append(("6", time.perf_counter()))
             return g
         else:
             if DEBUG: runs += 1
             continue # try next basis vector
     else:
-        if DEBUG: print(f"\nTried all {len(nullspace_basis_vectors)} basis vectors, but found no nontrivial factor.\n")
+        if DEBUG: print(f"Tried all {len(nullspace_basis_vectors)} basis vectors, but found no nontrivial factor.\n")
         if TIMING: perf_time_array.append(("6+7.FAIL", time.perf_counter()))
-        raise ValueError("Failed to find a nontrivial factor; try increasing B.")
+
+        if RETRIES <= 0:
+            raise ValueError("Failed to find a nontrivial factor; try increasing B.")
+        else:
+            if DEBUG: print(f"\n\nRetrying with increased B (attempts left: {RETRIES})...\n")
+            return quadratic_sieve(N, B=B*1.5, threads=threads, DEBUG=DEBUG, TIMING=TIMING, RETRIES=RETRIES-1)
 
 
 if __name__ == "__main__":
