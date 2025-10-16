@@ -56,21 +56,54 @@ and thus $x_f²=y_f^2\pmod{n}$, which is the pair we were looking for! Now, how 
 
 Our $x_i$ should allow us to efficiently find whether the product $y_f^2$ of $\mathbb{Q}^*=\{Q(x_j)\cdots\}$ is a perfect square. This is true if the sum of the exponents of the prime factors of $Q(x_j)\in\mathbb{Q}^*$ are all even. Since we need to find all these factors, we will want all $Q(x_j)$ to be small, and for them to be factored over a fixed set of small prime numbers, **the factor base**.
 
+The factor base consists of every prime number up until some bound $B$ we have previously chosen.  $Q(x)$ will be said to be **$B$-smooth** if it can be factored completely over prime numbers from the factor base and only factors from the factor base. That is, if all of its prime factors are $\leq B$.
+
 We ensure $Q(x)$ are small by bounding $x$ to lie inside the **sieving interval**, $x\in[-M,M]$.
 
 If $x$ lies in the sieving interval, and if some prime $p$ divides $Q(x)$, we note that $$\tilde{x}^2\equiv n\pmod{p},$$
 
-which is known as $n$ being a **quadratic residue mod $p$**. The Legendre Symbol $$\left(\frac{n}{p}\right)=\begin{cases}1\,&\text{if $n$ is a quadratic residue mod $p$}\\0\,&\text{if $p|n$}\\-1\,&\text{otherwise}\end{cases}$$ encodes whether $n$ is a quadratic residue mod $p$ for **any** $\tilde{x}$. For primes for which $n$ is not a quadratic residue mod $p$, we know that $Q(x)$ will never be divisible by $p$ for any $x$, and therefore useless for our algorithm. The Legendre Symbol is used by the QS to filter out such primes.
+which is known as $n$ being a **quadratic residue mod $p$**. The Legendre Symbol $$\left(\frac{n}{p}\right)=\begin{cases}1\,&\text{if $n$ is a quadratic residue mod $p$}\\0\,&\text{if $p|n$}\\-1\,&\text{otherwise}\end{cases}$$ encodes whether $n$ is a quadratic residue mod $p$ for **any** $\tilde{x}$. For primes for which $n$ is not a quadratic residue mod $p$, we know that $Q(x)$ will never be divisible by $p$ for any $x$, and therefore useless for our algorithm. QS uses Euler’s criterion as a way to compute the Legendre symbol and filter out such primes.
 
-Lastly, we limit the size of the primes to be less than some bound $B$, which depends on $n$ (more on that later). $Q(x)$ will be said to be **$B$-smooth** if all of its prime factors are $\leq B$.
+Euler’s Criterion states that for an odd prime $p$ and an integer $a$ not divisible by $p$, $$\left( \frac{a}{p} \right) \equiv a^{\frac{p-1}{2}} \pmod{p}.$$ In other words,
+$$
+a^{\frac{p-1}{2}} \equiv
+\begin{cases}
+1 & \text{if } a \text{ is a quadratic residue mod } p, \\
+-1 & \text{if } a \text{ is a nonresidue mod } p.
+\end{cases}
+$$
 
 *Note: negative numbers are included by including $-1$ in the factor base.*
 
 *Note: some authors let $Q(x)=x^2-n$ and set a different sieving interval.*
 
+*Note: Bound $B$ depends on $n$ (more on that later).*
+
 ### Sieving
 
-With the factor base determined, we sieve through the sieving interval $x$, calculate $Q(x)$, and check if $Q(x)$ factors completely over our factor base. If it does, it is said to have **smoothness** *(be $B$-smooth)*. If it does not, we throw it out.
+With the factor base determined, we sieve through the sieving interval $x$, calculate $Q(x)$, and check if $Q(x)$ factors completely over our factor base. If it does, it is said to have **smoothness**  *(be $B$-smooth)*. If it does not, we throw it out - since we only want $B$-smooth numbers.
+
+Instead of testing every $Q(x)$ one by one (which is slow), we use a sieving trick to quickly find all $Q(x)$ that are likely smooth.
+
+First, we find where each prime number $p$ from the factor base divides $Q(x)$.
+For every prime $p$ in the factor base, we find all $x$ such that:
+$$x^2 ≡ n \pmod{p}$$
+These are the **roots** $\pmod{p}$.  
+For each root $r$, every $x ≡ r \pmod{p}$ will make $p | (x^2 − n)$. So, $p$ divides $Q(x)$ for a whole arithmetic sequence of $x$’s:
+$$x = r, r + p, r + 2p, ...$$
+
+If $Q(x)$ is the product of some primes from the factor base, then the logarithm of $Q(x)$ is the sum of the logarithms of these primes:
+$$
+Q(x) = p_1 * p_2 * p_3 * ... \Rightarrow \ln(Q(x)) = \ln(p_1) + \ln(p_2) + \ln(p_3) + ...
+$$
+
+With that in mind, we calculate $\ln(Q(x))$ for every $Q(x)$. Each time a prime $p$ divides one of those $Q(x)$, we subtract $\ln(p)$ from the corresponding $\ln(Q(x))$ - if $p^k$ $Q(x)$, we subtract $k * \ln(Q(x))$. If $Q(x)$ factors completely over the factor base, the value of $\ln(Q(x))$ will be theoretically reduced to $0$.
+After we process all the primes from the factor base, the $x$'s whose corresponding $\ln(Q(x))$ values have been reduced to $0$ (or close to $0$) are the ones that are smooth - or almost smooth. These $x$ values are the ones we are interested in.
+
+After we find our pairs of $(x, Q(x))$ where $x$ is a probable $B$-smooth number, we use trial division to find exactly which prime numbers $p$ from the factor base divide $Q(x)$ and put each prime's exponent in its corresponding place in a vector.
+
+For example, if the factor base contains 10 prime numbers $p_1, p_2, ..., p_{10}$ and $Q(x_i) = p_2 * p_6 * p_7^2 * p_9$ for some $x_i$, then $x_i$'s vector will be:
+$$[0, 1, 0, 0, 0, 1, 2, 0, 1, 0]$$
 
 
 <!---

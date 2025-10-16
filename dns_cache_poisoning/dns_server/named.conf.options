@@ -1,0 +1,23 @@
+options {
+        directory "/var/cache/bind";
+
+        dump-file "/var/cache/bind/dump.db";
+
+        dnssec-validation no;
+
+        query-source port 33333;
+
+        listen-on port 53 { any; };
+
+        recursion yes;
+        allow-query { any; };
+
+        forwarders {
+            9.9.9.9;
+        };
+};
+
+zone "example.com" {
+    type master;
+    file "/var/cache/bind/example.com.db";
+};
