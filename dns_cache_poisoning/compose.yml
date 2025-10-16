@@ -1,0 +1,21 @@
+services:
+  dns_server:
+    build: ./dns_server/.
+    ports:
+      - "1053:53/udp"
+      - "1053:53/tcp"
+    networks:
+      dns_network:
+        ipv4_address: 172.18.0.2
+  attacker:
+    build: ./attack/.
+    networks:
+      dns_network:
+        ipv4_address: 172.18.0.3
+
+networks:
+  dns_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/24
