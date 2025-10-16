@@ -232,6 +232,7 @@ def quadratic_sieve(
     # B controls the size of the factor base.
     if B == "auto":
         B = math.exp(0.5 * math.sqrt(math.log(N) * math.log(math.log(N))))
+        B = max(100, B)
     elif type(B) == str:
         raise ValueError("B must be an integer or 'auto'")
 
@@ -351,9 +352,7 @@ def quadratic_sieve(
             raise ValueError("Failed to find a nontrivial factor; try increasing B.")
         else:
             if DEBUG: print(f"\n\nRetrying with increased B (attempts left: {RETRIES})...\n")
-            return quadratic_sieve(N, B=int(B*1.5), threads=threads, DEBUG=DEBUG, TIMING=TIMING, RETRIES=RETRIES-1)
-
-        raise ValueError("Failed to find a nontrivial factor; try increasing B.")
+            return quadratic_sieve(N, B=B*1.5, threads=threads, DEBUG=DEBUG, TIMING=TIMING, RETRIES=RETRIES-1)
 
 
 if __name__ == "__main__":
