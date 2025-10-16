@@ -20,7 +20,13 @@
    1. [**Using MitM**](#using-mitm)
    1. [**Using Factorization**](#using-factorization)
 1. [**Mitigation / Defense against the attack**](#1-about-freak)
-1. [**Contribution documentation**](#contribution-documentation)
+
+<!--
+-->
+[**Various project information**](#various-project-information)
+1. [**The usage of LLM:s, AI and borrowed code**](#the-usage-of-llms-ai-and-borrowed-code)
+2. [**Contribution documentation**](#contribution-documentation)
+3. [**Presentation material**](#presentation-material)
 
 ## About FREAK
 
@@ -39,10 +45,6 @@ Previous practical demonstration:
 
 - https://github.com/eniac/faas/tree/master
 - https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
-
-## Presentation (Google Slides)
-
-[DD2391 Project - Final Group 18 - FREAK](https://docs.google.com/presentation/d/1Ma8DdMEyfZuG2-iaYIO6c-XB07Kh5vx1UhjnjDeAjVI/edit?usp=sharing)
 
 ## Technical documentation
 
@@ -84,16 +86,34 @@ Eskil and Ioanna
 
 Todo
 
+## DD2391 Project Final 18
+
+By: Alexandru Carp, Elias Lundell, Eskil Nyberg, Venetia Ioanna Papadopoulou
+
+# Various project information
+
+## The usage of LLM:s, AI and borrowed code
+
+TODO
+
 ## Contribution documentation
 
 ### Alexandru Carp
 
+TODO
+
 ### Elias Lundell
+
+TODO
 
 ### Eskil Nyberg
 
+TODO
+
 ### Venetia Ioanna Papadopoulou
 
-## DD2391 Project Final 18
+TODO
 
-By: Alexandru Carp, Elias Lundell, Eskil Nyberg, Venetia Ioanna Papadopoulou
+## Presentation material
+
+Google Slides: [DD2391 Project - Final Group 18 - FREAK](https://docs.google.com/presentation/d/1Ma8DdMEyfZuG2-iaYIO6c-XB07Kh5vx1UhjnjDeAjVI/edit?usp=sharing)
