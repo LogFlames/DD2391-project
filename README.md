@@ -6,6 +6,22 @@
 > 
 > *en.wikipedia.org/wiki/FREAK, 18 sept 2025*
 
+## Table of Contents
+
+1. [**About FREAK**](#about-freak)
+1. [**Technical documentation**](#technical-documentation)
+   1. [**About RSA**](#about-rsa)
+   1. [**DNS cache poisoning**](#dns-cache-poisoning)
+   1. [**FREAK (MitM)**](#freak-mitm)
+   1. [**Factorization**](#factorization)
+   1. [**Breaking encryption**](#breaking-encryption)
+1. [**Performing the exploit**](#performing-the-exploit)
+   1. [**Using DNS cache poisoning**](#using-dns-cache-poisoning)
+   1. [**Using MitM**](#using-mitm)
+   1. [**Using Factorization**](#using-factorization)
+1. [**Mitigation / Defense against the attack**](#1-about-freak)
+1. [**Contribution documentation**](#contribution-documentation)
+
 ## About FREAK
 
 Broad introduction
@@ -64,7 +80,7 @@ Eskil and Ioanna
 
 Todo
 
-## Own Contribution
+## Contribution documentation
 
 ### Alexandru Carp
 
