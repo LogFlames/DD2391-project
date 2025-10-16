@@ -20,18 +20,27 @@ Previous practical demonstration:
 - https://github.com/eniac/faas/tree/master
 - https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
 
+## About FREAK
+
+## Technical documentation
+
+### About RSA
+
+### DNS cache poisoning
+
+### FREAK (MitM)
+
+### Factorization
+
+### Breaking encryption
+
 ## Performing the exploit
 
-Todo
+### Using DNS cache poisoning
 
-## Theoretical background
+### Using MitM
 
-Todo
-
-- https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
-- https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
-- https://math.dartmouth.edu/~carlp/PDF/qs08.pdf
-- https://www.csc.kth.se/~joel/qs.pdf
+### Using factorization
 
 ## Defense against the attack
 
