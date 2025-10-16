@@ -6,6 +6,10 @@
 > 
 > *en.wikipedia.org/wiki/FREAK, 18 sept 2025*
 
+## About FREAK
+
+Broad introduction
+
 Information on FREAK:
 - https://nvd.nist.gov/vuln/detail/CVE-2015-0204 (OpenSSL)
 - https://nvd.nist.gov/vuln/detail/CVE-2015-1637 (Schannel)
@@ -20,32 +24,56 @@ Previous practical demonstration:
 - https://github.com/eniac/faas/tree/master
 - https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
 
-## About FREAK
-
 ## Technical documentation
 
 ### About RSA
 
+Eskil and Ioanna
+
 ### DNS cache poisoning
+
+Elias
 
 ### FREAK (MitM)
 
+Alexandru
+
 ### Factorization
 
+Eskil and Ioanna
+
 ### Breaking encryption
+
+Alexandru
 
 ## Performing the exploit
 
 ### Using DNS cache poisoning
 
+Elias
+
 ### Using MitM
+
+Alexandru
 
 ### Using factorization
 
-## Defense against the attack
+Eskil and Ioanna
+
+## Mitigation/Defense against the attack
 
 Todo
 
-### DD2391 Project Final 18
+## Own Contribution
+
+### Alexandru Carp
+
+### Elias Lundell
+
+### Eskil Nyberg
+
+### Venetia Ioanna Papadopoulou
+
+## DD2391 Project Final 18
 
 By: Alexandru Carp, Elias Lundell, Eskil Nyberg, Venetia Ioanna Papadopoulou
