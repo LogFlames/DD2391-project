@@ -21,7 +21,7 @@ The QS looks for numbers $x,y$ such that $$x\not\equiv\pm y \pmod{n}\quad\land\q
 
 This is because, such numbers $x,y$ untrivially fulfill $$(x-y)(x+y)\equiv 0\pmod{n},$$ suggesting that $(x\pm y)$ might contain divisors of $n$, which is tested with $\gcd{(x-y,n)}$.
 
-*Note: $\gcd$ is implemented with Euclidian Division.*
+*Note: $\gcd{}$ is implemented with Euclidian Division.*
 
 > #### **Factor example**
 > 
