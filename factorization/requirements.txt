@@ -1,4 +1,5 @@
+pycryptodome
 cryptography
 numpy
-math
 sympy
+tqdm

@@ -2,7 +2,6 @@
 """
 Wrapper script for running the implemented QS algorithm for an RSA modulus.
     
-
 Written with LLM assistance.
 """
 

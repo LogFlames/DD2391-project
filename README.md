@@ -12,17 +12,17 @@
 
 0. [**Table of Contents**](#table-of-contents)
 1. [**About FREAK**](#about-freak)
-1. [**Technical documentation**](#technical-documentation)
+2. [**Technical documentation**](#technical-documentation)
    1. [**About RSA**](#about-rsa)
-   1. [**DNS cache poisoning**](#dns-cache-poisoning)
-   1. [**FREAK (MitM)**](#freak-mitm)
-   1. [**Factorization**](#factorization)
-   1. [**Breaking encryption**](#breaking-encryption)
-1. [**Performing the exploit**](#performing-the-exploit)
+   2. [**DNS cache poisoning**](#dns-cache-poisoning)
+   3. [**FREAK (MitM)**](#freak-mitm)
+   4. [**Factorization**](#factorization)
+   5. [**Breaking encryption**](#breaking-encryption)
+3. [**Performing the exploit**](#performing-the-exploit)
    1. [**Using DNS cache poisoning**](#using-dns-cache-poisoning)
-   1. [**Using MitM**](#using-mitm)
-   1. [**Using Factorization**](#using-factorization)
-1. [**Mitigation / Defense against the attack**](#1-about-freak)
+   2. [**Using MitM**](#using-mitm)
+   3. [**Using Factorization**](#using-factorization)
+4. [**Mitigation / Defense against the attack**](#1-about-freak)
 
 ---
 
