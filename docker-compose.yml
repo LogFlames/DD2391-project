@@ -11,21 +11,6 @@ services:
       - ./server_certs:/shared_certs
       - ./keys:/keys
 
-  # browser:
-  #   build: ./browser
-  #   container_name: freak-browser
-  #   environment:
-  #     - DISPLAY=${DISPLAY}
-  #   volumes:
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
-  #   networks:
-  #     - freaknet
-  #   # Interactive and auto-remove for GUI
-  #   stdin_open: true
-  #   tty: true
-  #   # Remove container on exit
-  #   restart: "no"
-
   client:
     build: ./client
     container_name: freak-client
