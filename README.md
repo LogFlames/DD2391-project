@@ -294,6 +294,7 @@ Information on FREAK:
 - https://en.wikipedia.org/wiki/FREAK
 - https://access.redhat.com/articles/1369543
 - https://freakattack.com/
+- https://www.ieee-security.org/TC/SP2015/papers-archived/6949a535.pdf
 
 Previous practical demonstration:
 
@@ -314,10 +315,15 @@ Factorization / Quadratic Sieve:
 * https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
 * https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
 
+TLSv1.0 protocol:
+* https://www.ietf.org/rfc/rfc2246.txt
+* https://wiki.osdev.org/TLS_Handshake#Server_Key_Exchange_Message
+* https://scapy.readthedocs.io/en/latest/api/scapy.layers.tls.handshake.html
+
+
 <!---TODO
 Add references for Quadratic Sieve
 Add references for GNFS
-Add references for Alex's part?
 --->
 
 ## DD2391 Project Final 18
