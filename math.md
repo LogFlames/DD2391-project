@@ -98,9 +98,9 @@ Q(x) = p_1 * p_2 * p_3 * ... \Rightarrow \ln(Q(x)) = \ln(p_1) + \ln(p_2) + \ln(p
 $$
 
 With that in mind, we calculate $\ln(Q(x))$ for every $Q(x)$. Each time a prime $p$ divides one of those $Q(x)$, we subtract $\ln(p)$ from the corresponding $\ln(Q(x))$ - if $p^k$ $Q(x)$, we subtract $k * \ln(Q(x))$. If $Q(x)$ factors completely over the factor base, the value of $\ln(Q(x))$ will be theoretically reduced to $0$.
-After we process all the primes from the factor base, the $x$'s whose corresponding $\ln(Q(x))$ values have been reduced to $0$ (or close to $0$) are the ones that are smooth - or almost smooth. These $x$ values are the ones we are interested in.
+After we process all the primes from the factor base, the $Q(x)$'s whose corresponding $\ln(Q(x))$ values have been reduced to $0$ (or close to $0$) are the ones that are smooth - or almost smooth. These values are the ones we are interested in.
 
-After we find our pairs of $(x, Q(x))$ where $x$ is a probable $B$-smooth number, we use trial division to find exactly which prime numbers $p$ from the factor base divide $Q(x)$ and put each prime's exponent in its corresponding place in a vector.
+After we find our pairs of $(x, Q(x))$ where $Q(x)$ is a probable $B$-smooth number, we use trial division to find exactly which prime numbers $p$ from the factor base divide $Q(x)$ and put each prime's exponent in its corresponding place in a vector.
 
 For example, if the factor base contains 10 prime numbers $p_1, p_2, ..., p_{10}$ and $Q(x_i) = p_2 * p_6 * p_7^2 * p_9$ for some $x_i$, then $x_i$'s vector will be:
 $$[0, 1, 0, 0, 0, 1, 2, 0, 1, 0]$$
@@ -139,11 +139,23 @@ So, finally, we test whether the subsets yield a factor of $n$ with GCD. For RSA
 
 ### Sieving optimizations
 
+### One-Large-Prime Variant of the Quadratic Sieve
+
+The One-Large-Prime (1LP) variant is an optimization of the basic Quadratic Sieve (QS) algorithm that increases the number of relations without greatly increasing the computation time needed.
+
+In the basic QS algorithm, a value $Q(x) = x^2 - N$ is only accepted if it is completely $B$-smooth, meaning that it factors completely over the factor base (and only the factor base). However, in practice, there are a lot of values $Q(x)$ that are "_almost_ smooth" - they factor completely over the factor base except for one additional prime number $p$ that is larger than the bound $B$. These are called "partial relations".
+
+The basic QS algorithm "discards" these partial relations. However, the 1LP variant takes advantage of them. Essentially, the 1LP variant accepts values $Q(x)$ that contain exactly one prime factor greater than $B$ and stores them temporarily. Then, it combines one partial relation with another that shares the same large prime. When two such relations are multiplied together, they produce a "_full_ relation" that can be used in the exponent matrix in the next step of the algorithm.
+
+When we multiply the two $Q(x)$ values: $$ Q(x_1) * Q(x_2) = (x^1_2−N)(x^2_2−N) $$ each has a factor of the same large prime $p$. That way, the exponent of $p$ becomes an even number (more specifically $2$) and therefore cancels out, as we use modulo $2$ in the exponent vector. This way, the product of $Q(x_1)$ and $Q(x_2)$ becomes $B$-smooth.
+
+In short, two partial relations with the same large prime can be combined into one full relation.
+
 ### Parallelization
 
 ## Author's notes
 
-Author: Eskil Nyberg
+Authors: Eskil Nyberg, Venetia Ioanna Papadopoulou
 
 Based on Eric Landquist's write-up on the Quadratic Sieve.
 
