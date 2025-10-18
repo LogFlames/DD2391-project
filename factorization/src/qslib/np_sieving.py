@@ -12,24 +12,26 @@ def sieving(N, factor_base, M):
     interval = range(-M, M+1)
     probable_smooth = set()
 
-    sieve_array = [math.log(abs((sqrt_N + x)**2 - N)) for x in interval]
-    sieve_array = np.array(sieve_array) # NUMPY IMPROVEMENT
+    # changed
+    sieve_array = np.zeros(len(interval), dtype=np.float64)
+    for i, x in enumerate(interval):
+        sieve_array[i] = np.float64(math.log(abs((sqrt_N + x)**2 - N)))
 
     for p in factor_base:
         roots = sqrt_mod(N, p, all_roots=True)
 
         for r in roots:
-            power = p
+            power = int(p)
 
             while power <= 2*M:
                 offset = ((sqrt_N + interval[0]) - r) % power
                 if offset != 0:
                     offset = power - offset
-                for i in range(offset, len(interval), power):
-                    sieve_array[i] -= np.log(p) # NUMPY IMPROVEMENT
+                indices = np.arange(offset, len(interval), power)
+                sieve_array[indices] -= np.log(p) # NUMPY IMPROVEMENT
                 power *= p
 
-        for i in np.where(sieve_array < 0.5)[0]:
+        for i in np.where(sieve_array < 0.5)[0]: # NUMPY IMPROVEMENT
             x = sqrt_N + interval[i]
             y = pow(x, 2) - N
             probable_smooth.add((x, y))

@@ -25,7 +25,7 @@ def select_parameters(N: int, B: int|Literal["auto"]="auto") -> tuple[int, int]:
         raise ValueError("B must be an integer or 'auto'")
 
     # M defines the interval [-M, M] around sqrt(N) where we search for B-smooth numbers
-    M = int(math.pow(B, 2))
+    M = int(pow(B, 2))
 
     return int(B), M
 
@@ -107,11 +107,13 @@ def sieving(N, factor_base, M):
         for i in range(len(sieve_array)):
             if sieve_array[i] < 0.5:
                 x = sqrt_N + interval[i]
-                y = math.pow(x, 2) - N
+                y = pow(x, 2) - N
                 probable_smooth.add((x,y))
 
     # To avoid duplicates in probable_smooth we first made it a set, and then convert it to a list
     probable_smooth = list(probable_smooth)
+
+    return probable_smooth
 
 ########################################################
 # Step 4: Filter B-smooth numbers and decide exponents #
@@ -151,10 +153,7 @@ def filter_and_find_exponents(probable_smooth, factor_base):
         if value == 1:  # x is indeed a B-smooth number
             results.append((x, exponents))
 
-    # Filter out any relations where x <= 0
-    relations = [(x, exp) for x, exp in results if x > 0]
-    
-    return relations
+    return results
 
 #####################################################
 # Step 5: Find sets of Q(x) whose product is square #
@@ -172,9 +171,9 @@ def find_sets_of_squares(relations):
     """
 
     # Build the exponent matrix mod 2
-    A = np.array([exponents for _, exponents in relations], dtype=int)
+    A = np.array([exponents for _, exponents in relations], dtype=np.int8)
     A = (A % 2).astype(bool)
-
+    
     # 5. Find left nullspace basis vectors
     # i.e. linear dependencies mod 2
     # i.e. e such that eA = 0 (mod 2)

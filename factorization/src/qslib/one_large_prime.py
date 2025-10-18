@@ -77,14 +77,18 @@ def _combine_relations(partial_relations, N):
     combinations ={}    # partials by prime
 
     for x1, exponents1, prime in partial_relations:
-        if prime in combinations:
-            x2, exponents2, prime = combinations.pop(prime)
-            x = (x1 * x2) % N
-            exponents = [(e1 + e2) for e1, e2 in zip(exponents1, exponents2)]
-            full_relations.append((x, exponents))
-        else:
-            combinations[prime] = (x1, exponents1, prime)
+        if not combinations.get(prime):
+            combinations[prime] = []
+        combinations[prime].append((x1, exponents1))
 
+    for prime, partials in combinations.items():
+        while len(partials) > 1:
+            x1, exponents1 = partials.pop()
+            for x2, exponents2 in partials:
+                x = (x1 * x2) % N
+                exponents = [(e1 + e2) for e1, e2 in zip(exponents1, exponents2)]
+                full_relations.append((x, exponents))
+            
     return full_relations
 
 #################################
@@ -95,14 +99,14 @@ import src.qslib.base as base
 import src.qslib.parallel_np_sieving as parallel_np_sieving
 from typing import Literal
 
-def quadratic_sieve(N: int, B: int|Literal["auto"]="auto", num_jobs: int=1, max_parallel_jobs: int=1, multivariant: Literal["multiprocessing", "multithreading"]="multiprocessing") -> int:
+def quadratic_sieve(N: int, B: int|Literal["auto"]="auto", chunks: int=4, jobs: int=4, multivariant: Literal["multiprocessing", "multithreading"]="multiprocessing") -> int:
     """
     Like base.quadratic_sieve, but with numpy accelerated sieving and enabled for parallel sieving.
     
     :param N: The integer to be factored (should be a composite number).
     :param B: The bound for the factor base (or "auto" to compute automatically).
-    :param num_jobs: Number of jobs to split the sieving into.
-    :param max_parallel_jobs: Maximum number of parallel jobs to run concurrently.
+    :param chunks: The number of chunks to divide the work into.
+    :param jobs: The number of parallel jobs to run.
     :param variant: "multiprocessing" or "multithreading" to choose parallelization method.
     WARNING: Multithreading is GIL-bound and will not yield speedup. Even with GIL disabled on a freethreaded version of Python, speed-up is not achieved (except maybe for quite small numbers).
     :return: A nontrivial factor of N, or raises ValueError if no factor is found.
@@ -110,7 +114,7 @@ def quadratic_sieve(N: int, B: int|Literal["auto"]="auto", num_jobs: int=1, max_
     B, M = base.select_parameters(N, B)
     print(f"\nB = {int(B)}\n")
     factor_base = base.build_factor_base(N, B)
-    probable_smooth = parallel_np_sieving.parallel_sieving(N, factor_base, M, num_jobs, max_parallel_jobs, multivariant)
+    probable_smooth = parallel_np_sieving.parallel_sieving(N, factor_base, M, chunks, jobs, multivariant)
     relations = filter_and_find_exponents_olp(B, probable_smooth, factor_base)
     nullspace_basis_vectors = base.find_sets_of_squares(relations)
     factor = base.test_found_subsets(N, factor_base, relations, nullspace_basis_vectors)

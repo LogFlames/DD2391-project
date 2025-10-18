@@ -20,8 +20,8 @@ from os import cpu_count
 #############################
 
 def parallel_sieving(N, factor_base, M,
-        num_jobs=1,
-        max_parallel_jobs=1,
+        chunks=1,
+        jobs=1,
         variant: Literal["multiprocessing", "multithreading"]="multiprocessing"
         ):
     """
@@ -32,18 +32,25 @@ def parallel_sieving(N, factor_base, M,
     :param N: The integer to be factored.
     :param factor_base: List of primes in the factor base.
     :param M: The sieving interval parameter.
-    :param num_jobs: Number of jobs to split the sieving into.
-    :param max_parallel_jobs: Maximum number of parallel jobs to run concurrently.
+    :param chunks: The number of chunks to divide the work into.
+    :param jobs: The number of parallel jobs to run.
     :param variant: "multiprocessing" or "multithreading" to choose parallelization method.
     WARNING: Multithreading is GIL-bound and will not yield speedup. Even with GIL disabled on a freethreaded version of Python, speed-up is not achieved (except maybe for quite small numbers).
     :return: List of tuples (x, Q(x)) where Q(x) is B-smooth.
     """
     factor_base = np.array(factor_base) # ensure numpy array for efficiency
 
-    if num_jobs < 1:
+    if chunks == -1:
+        # autocalculate reasonable number
+        opcount_per_chunk = 10**9
+        ops = len(factor_base)*M
+        chunks = int(ops/opcount_per_chunk)
+        print(f"Chunks set to -1, using {chunks} chunks")
+
+    if chunks < 1:
         raise ValueError("num_jobs must be at least 1")
-    elif num_jobs > 1:
-        probable_smooth = _parallel_sieving(N, factor_base, M, num_jobs, max_parallel_jobs, variant)
+    elif chunks > 1:
+        probable_smooth = _parallel_sieving(N, factor_base, M, chunks, jobs, variant)
     else:   # single-core sieving
         factor_base_roots = [
             np.array(sqrt_mod(N, p, all_roots=True), dtype=object)
@@ -57,7 +64,7 @@ def parallel_sieving(N, factor_base, M,
         probable_smooth = list(map(tuple, probable_smooth))
     return probable_smooth
 
-def _parallel_sieving(N, factor_base, M, num_jobs, num_parallel_jobs, variant):
+def _parallel_sieving(N, factor_base, M, chunks, jobs, variant):
     """See parallel_np_sieving._parallel_sieving for comments."""
     probable_smooth = set()
     sqrt_N = math.isqrt(N)
@@ -71,17 +78,17 @@ def _parallel_sieving(N, factor_base, M, num_jobs, num_parallel_jobs, variant):
     interval_min, interval_max = -M, M+1
     interval_len = interval_max - interval_min
 
-    chunk_size = interval_len // num_jobs
+    chunk_size = interval_len // chunks
     bounds = [
-        (i*chunk_size, (i+1)*chunk_size if i != num_jobs-1 else interval_len)
-        for i in range(num_jobs)
+        (i*chunk_size, (i+1)*chunk_size if i != chunks-1 else interval_len)
+        for i in range(chunks)
     ]
 
     # only multithreading is compatible with passing tqdm process bars
     pbar = tqdm.tqdm(
-        total=len(factor_base)*num_jobs,
+        total=len(factor_base)*chunks,
         desc="Sieving",
-        smoothing=0 if num_jobs > num_parallel_jobs else 0.3
+        smoothing=0
         ) if variant == "multithreading" else None
     
     inputs = [
@@ -92,13 +99,13 @@ def _parallel_sieving(N, factor_base, M, num_jobs, num_parallel_jobs, variant):
     if variant == "multiprocessing":
         import multiprocessing.pool
 
-        with multiprocessing.pool.Pool(processes=num_parallel_jobs) as pool:
-            results = list(tqdm.tqdm(pool.imap(sieve_worker_controller, inputs), total=len(inputs), desc="Process completion"))
+        with multiprocessing.pool.Pool(processes=jobs) as pool:
+            results = list(tqdm.tqdm(pool.imap(sieve_worker_controller, inputs), total=len(inputs), desc="Chunk completion"))
     elif variant == "multithreading":
         import concurrent.futures as futures
 
-        with futures.ThreadPoolExecutor(max_workers=num_parallel_jobs) as executor:
-            results = list(tqdm.tqdm(executor.map(sieve_worker_controller, inputs), total=len(inputs), desc="Thread completion"))
+        with futures.ThreadPoolExecutor(max_workers=jobs) as executor:
+            results = list(tqdm.tqdm(executor.map(sieve_worker_controller, inputs), total=len(inputs), desc="Chunk completion"))
     else: raise ValueError("variant must be 'multiprocessing' or 'multithreading'")
     
     for res in results:
@@ -117,11 +124,12 @@ def _sieve_worker(N, sqrt_N, factor_base, factor_base_roots, M, start, end, pbar
     interval = range(start, end)
     probable_smooth = set()
     
-    sieve_array = [math.log(abs((sqrt_N + x)**2 - N)) for x in interval]
-    sieve_array = np.array(sieve_array)
+    sieve_array = np.zeros(len(interval), dtype=np.float64)
+    for i, x in enumerate(interval):
+        sieve_array[i] = np.float64(math.log(abs((sqrt_N + x)**2 - N)))
 
     for j in range(len(factor_base)):
-        p = factor_base[j]
+        p = int(factor_base[j])
         roots = factor_base_roots[j]
         if pbar: pbar.update(1)
 
@@ -132,12 +140,12 @@ def _sieve_worker(N, sqrt_N, factor_base, factor_base_roots, M, start, end, pbar
                 offset = ((sqrt_N + interval[0]) - r) % power
                 if offset != 0:
                     offset = power - offset
-                for j in range(offset, len(interval), power):
-                    sieve_array[j] -= np.log(p)
+                indices = np.arange(offset, len(interval), power)
+                sieve_array[indices] -= np.log(p)
                 power *= p
 
-        for j in np.where(sieve_array < 0.5)[0]:
-            x = sqrt_N + interval[j]
+        for i in np.where(sieve_array < 0.5)[0]:
+            x = sqrt_N + interval[i]
             y = pow(x, 2) - N
             probable_smooth.add((x, y))
 
@@ -205,30 +213,36 @@ def get_timing() -> list[(str, float)]:
     global perf_time_array
     return perf_time_array
 
-def print_timing(include_debug=False):
+def print_timing(verbosity: Literal[0, 1, 2]=0):
     """Print recorded timing information."""
     global perf_time_array
     init_t = perf_time_array[0][1]
     prev_t = init_t
     print("\nTiming:")
     for s, t in perf_time_array:
-        if not include_debug and ("debug" in s or s == "init"):
+        if verbosity < 2 and ("debug" in s or s == "init"):
             continue
-        print(f"{s}: {t-prev_t:.3f} s, total: {t - init_t:.3f} s")
+        if verbosity == 0:
+            if s != "3" and s != "5": continue
+            print(f"{"Sieving" if s == 3 else "Linalg"}: {t-prev_t:.3f} s")
+        else:
+            print(f"{s}: {t-prev_t:.3f} s, total: {t - init_t:.3f} s")
+        
         prev_t = t
+    if verbosity == 0: print(f"Total time taken: {t - init_t:.3f} s")
     print()
 
 def quadratic_sieve(
         N: int,
         B: int|str="auto",
-        num_jobs: int=1,
-        num_parallel_jobs: int=cpu_count(),
+        chunks: int=-1,
+        jobs: int=min(4, cpu_count()),
         retries: int=0,
         retry_factor: float=1.2,
         multivariant: Literal["multiprocessing", "multithreading"]="multithreading",
         debug: int=0,
         timing: bool=False,
-        ONE_LARGE_PRIME_VARIANT: bool=False
+        one_large_prime: bool=False
         ) -> int:
     """
     Quadratic Sieve algorithm
@@ -237,13 +251,14 @@ def quadratic_sieve(
 
     :param N: The integer to be factored (should be a composite number).
     :param B: The bound for the factor base (or "auto" to compute automatically).
-    :param num_jobs: Number of jobs to split the sieving into.
-    :param num_parallel_jobs: Maximum number of parallel jobs to run concurrently.
+    :param chunks: The number of chunks to divide the work into. This variant also accepts -1 to autocalculate this number.
+    :param jobs: The number of parallel jobs to run.
     :param debug: Level of debug information (0: none, 1: basic, 2: detailed).
     :param timing: Whether to record timing information.
     :param retries: Number of retries with increased B if no factor is found.
     :param retry_factor: Factor by which to increase B on each retry.
-    :param variant: "multiprocessing" or "multithreading" to choose parallelization method.
+    :param multivariant: "multiprocessing" or "multithreading" to choose parallelization method.
+    :param one_large_prime: Whether to use the one_large_prime variant for the collection step.
     WARNING: Multithreading is GIL-bound and will not yield speedup. Even with GIL disabled on a freethreaded version of Python, speed-up is not achieved (except maybe for quite small numbers).
     :return: A nontrivial factor of N, or raises ValueError if no factor is found.
     """
@@ -268,7 +283,7 @@ def quadratic_sieve(
         if timing: perf_time_array.append(("debug", time.perf_counter()))
 
     ### 3 ###
-    probable_smooth = parallel_sieving(N, factor_base, M, num_jobs, num_parallel_jobs, multivariant)
+    probable_smooth = parallel_sieving(N, factor_base, M, chunks, jobs, multivariant)
 
     if timing: perf_time_array.append(("3", time.perf_counter()))
     if debug > 0:
@@ -281,7 +296,7 @@ def quadratic_sieve(
         if timing: perf_time_array.append(("debug", time.perf_counter()))
 
     ### 4 ###
-    if ONE_LARGE_PRIME_VARIANT:
+    if one_large_prime:
         relations = olp.filter_and_find_exponents_olp(B, probable_smooth, factor_base)
     else:
         relations = base.filter_and_find_exponents(probable_smooth, factor_base)
@@ -336,8 +351,8 @@ def quadratic_sieve(
             return quadratic_sieve(
                 N,
                 B=int(B*retry_factor),
-                num_jobs=num_jobs,
-                num_parallel_jobs=num_parallel_jobs,
+                chunks=chunks,
+                jobs=jobs,
                 retries=retries-1,
                 retry_factor=retry_factor,
                 multivariant=multivariant,
