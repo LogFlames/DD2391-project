@@ -11,6 +11,7 @@
 [**FREAK (CVE-2015-0204)**](#freak-cve-2015-0204)
 
 0. [**Table of Contents**](#table-of-contents)
+   1. [**Directory structure**](#directory-structure)
 1. [**Project summary**](#project-summary)
 2. [**Technical documentation**](#technical-documentation)
    1. [**About RSA**](#about-rsa)
@@ -32,7 +33,7 @@
 2. [**Contribution documentation**](#contribution-documentation)
 3. [**Presentation material**](#presentation-material)
 
-## Directory structure
+### Directory structure
 
 Note: as per request, this README.md contains all details on the project necessary for the report. Other READMEs and files contain auxiliary or unnecessary information.
 
