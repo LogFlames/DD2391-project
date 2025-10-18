@@ -356,11 +356,11 @@ TODO
 * Together with Ioanna, wrote [factorization/math.md](factorization/math.md) to understand and make transparent the math behind the Quadratic Sieve.
 * Implemented the linear algebra for the Quadratic Sieve, in particular steps 5 and 6 in [factorization/src/qslib/base.py](factorization/src/qslib/base.py). Little to no LLM:s were used for this.
 * Put the Quadratic Sieve together and verified the execution process.
-* Optimized the Quadratic Sieve (with numpy, SageMath and parallelization) *--- LLM:s were used for this!*
-* Tried many more optimizations, including numba (njit/jit), further numpy optimizations, parallelization variants (such as multithreading without Python's GIL), and SageMath (external). *--- LLM:s were used for this!*
+* Optimized the Quadratic Sieve (with numpy, SageMath and parallelization) *LLM:s were used for this!*
+* Tried many more optimizations, including numba (njit/jit), further numpy optimizations, parallelization variants (such as multithreading without Python's GIL), and SageMath (external). *LLM:s were used for this!*
 * Refactored and deduplicated the code to make transparent everything behind our implementation of the Quadratic Sieve, see [factorization/qslib](factorization/src/qslib/).
 * Wrote an [extensive interface](factorization/src/quadratic_sieve.py) for interaction with the Quadratic Sieve and the various variants we have tried. See [factorization/readme.md](factorization/readme.md) for details.
-* Wrote interfaces to interact with the RSA modulus and prepare a private key from a public key, see [factorization/break_rsa.py](factorization/break_rsa.py). *--- LLM:s were used for this!*
+* Wrote interfaces to interact with the RSA modulus and prepare a private key from a public key, see [factorization/break_rsa.py](factorization/break_rsa.py). *LLM:s were used for this!*
 * Hunted all the bugs associated with the above.
 
 ### Venetia Ioanna Papadopoulou
