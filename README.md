@@ -52,10 +52,11 @@ Overview:
 
 ## Project summary
 
-Project summary: Eskil
-
-<!---TODO
---->
+This is a project perfomed as part of the DD2391 Cybersecurity Overview course at KTH Royal Institute of Technology in Stockholm, Sweden. It explores and tries to perform a proof-of-concept of the CVE knows as FREAK. To do this we perform 4 distinct steps:
+* Setup and explore ways to perform man-in-the-middle attacks to proxy a server. Implement a proof-of-concept for DNS Cache Poisoning.
+* Research, explore and successfully abuse a bug in SSL 1.0.1f to make the key negotiation use an RSA export key (of limited size due to USA encryption export restrictions)
+* Explore fast prime factorization methods, implement algorithms to perform factorization of large primes. Implementing an interface to work on RSA keys and get the private key from the public key.
+* Use the private key to finish the handshake using the smaller RSA key, making the proxy's interference in the key negotiation invisible to the server and client, and listen to all subsequent encrypted traffic.
 
 ## Technical documentation
 
@@ -312,6 +313,7 @@ Information on FREAK:
 - https://en.wikipedia.org/wiki/FREAK
 - https://access.redhat.com/articles/1369543
 - https://freakattack.com/
+- https://www.ieee-security.org/TC/SP2015/papers-archived/6949a535.pdf
 
 Previous practical demonstration:
 
@@ -332,10 +334,15 @@ Factorization / Quadratic Sieve:
 * https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
 * https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
 
+TLSv1.0 protocol:
+* https://www.ietf.org/rfc/rfc2246.txt
+* https://wiki.osdev.org/TLS_Handshake#Server_Key_Exchange_Message
+* https://scapy.readthedocs.io/en/latest/api/scapy.layers.tls.handshake.html
+
+
 <!---TODO
 Add references for Quadratic Sieve
 Add references for GNFS
-Add references for Alex's part?
 --->
 
 ## DD2391 Project Final 18
@@ -366,9 +373,10 @@ The [flood.c](dns_cache_poisoning/attack/flood.c) was initially structed by the 
 ### Elias Lundell
 
 * Researched man-in-the-middle attacks, choosing DNS Cache Poisoning as the main attack to explore in the project.
+* Explored different ways to perform DNS Cache Poisoning, both when on the same network and when on different networks. Explore feasability, advantages and disadvantages of each approach.
 * Setup a DNS testing environment in docker, setting up a Bind9 DNS server to be vulnerable to the attack.
-* Wrote [flood.c](dns_cache_poisoning/attack/flood.c) to generate DNS packets according to RFC1035 and flood the DNS server with guesses for transaction IDs.
-* Auotmated the attack using new subdomains, easing the attempts with new subdomains.
+* Wrote [flood.c](dns_cache_poisoning/attack/flood.c) to generate DNS packets according to RFC1035. Manually generate UDP packets to be able to spoof the source ip address to get packets accepted by the Bind9 DNS server. Flood the DNS server with packets with different Transaction IDs to get packets accepted.
+* Auotmated the use of subdomains to reattempt at changing the NS server without having to wait for the cache timeout period until reattempting.
 
 ### Eskil Nyberg
 
