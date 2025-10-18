@@ -279,10 +279,13 @@ For example, on our computer (8 cores, ~4 GHz, 16 GB RAM):
 
 ## Mitigation/Defense against the attack
 
-Todo
+The FREAK attack exploited a vulnerability in the TLS protocol, specifically support for weak export-grade RSA cipher suites. Moreover, flaws in the implementation of the TLS protocol in both clients and servers made the attack feasible. While export RSA cipher suites are no longer used and the specific vulnerabilities exploited by FREAK have been patched, the attack still serves as a valuable lesson in the importance of robust protocol design and implementation. The following measures can help mitigate or defend against similar attacks:
 
-<!---TODO
---->
+1. **Disable weak cipher suites**: Ensure that both clients and servers are configured to disable support for weak cipher suites. While export-grade RSA cipher suites are deprecated for long, it is essential to avoid any cipher suites that are considered weak or vulnerable. As technology evolves, regularly review and update the list of supported cipher suites to ensure they meet current security standards.
+
+2. **Keep critical software up to date**: Regularly update TLS libraries and software to the latest versions. Security patches and updates often address known vulnerabilities, including those related to protocol implementations. The FREAK attack was mitigated by patches released for OpenSSL, Schannel, and Secure Transport. These are the most common TLS libraries used even today, so keeping them updated is crucial as no software is free from vulnerabilities.
+
+3. **Don't reuse temporary keys**: Ensure that temporary keys used in TLS handshakes are generated uniquely for each session and not reused across multiple connections. Reusing temporary keys can allow attackers to factor them once and use the result to compromise multiple sessions, as was the case in the FREAK attack. This can be extended to all kind of secrets used in cryptographic protocols.
 
 ## References
 
