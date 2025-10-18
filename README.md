@@ -11,7 +11,7 @@
 [**FREAK (CVE-2015-0204)**](#freak-cve-2015-0204)
 
 0. [**Table of Contents**](#table-of-contents)
-1. [**About FREAK**](#about-freak)
+1. [**Project summary**](#project-summary)
 2. [**Technical documentation**](#technical-documentation)
    1. [**About RSA**](#about-rsa)
    2. [**DNS cache poisoning**](#dns-cache-poisoning)
@@ -21,8 +21,9 @@
 3. [**Performing the exploit**](#performing-the-exploit)
    1. [**Using DNS cache poisoning**](#using-dns-cache-poisoning)
    2. [**Using MitM**](#using-mitm)
-   3. [**Using Factorization**](#using-factorization)
-4. [**Mitigation / Defense against the attack**](#1-about-freak)
+   3. [**Using the Quadratic Sieve**](#using-the-quadratic-sieve)
+4. [**Mitigation / Defense against the attack**](#mitigationdefense-against-the-attack)
+5. [**References**](#references)
 
 ---
 
@@ -63,7 +64,7 @@ There are two scenarios for this:
 
 If we are on the same network, we can sniff the DNS request and read both the transaction ID and the port number from the request. Construct our response and send it, since we are on the local network we have a high probabilty to be faster than the remote DNS server it is quering.
 
-If we are on a different network things become a bit more complicated. We have to guess both values. The transaction ID is a 16-bit number, and the port number is also a 16-bit number. The port number was usually a fixed port on older DNS server, but is being randomized for modern systems for security, similar to ASLR. To make the attack easier for our demonstration we set a fixed port number (see [named.conf.options:L8](https://github.com/LogFlames/DD2391-project/blob/6cbb1abdb9bbd189f7668d947fa74f0259bc636b/dns_cache_poisoning/dns_server/named.conf.options#L8)), however the same brute-forcing can be applied to the port as well as the transaction ID, it will just take longer. The transaction ID is being brute-forced. We wrote a C script ([flood.c](https://github.com/LogFlames/DD2391-project/blob/main/dns_cache_poisoning/attack/flood.c)) to efficiently generate and send UDP packets. Since the real server usually responds in a couple of milliseconds, the attack succedes if the transaction ID is lower (tested earlier in our attack script). The script must also generate manuall UDP packets to be able to pretend they originate from the IP that the DNS server expects (9.9.9.9 in our case).
+If we are on a different network things become a bit more complicated. We have to guess both values. The transaction ID is a 16-bit number, and the port number is also a 16-bit number. The port number was usually a fixed port on older DNS server, but is being randomized for modern systems for security, similar to ASLR. To make the attack easier for our demonstration we set a fixed port number (see [named.conf.options:L8](https://github.com/LogFlames/DD2391-project/blob/6cbb1abdb9bbd189f7668d947fa74f0259bc636b/dns_cache_poisoning/dns_server/named.conf.options#L8)), however the same brute-forcing can be applied to the port as well as the transaction ID, it will just take longer. The transaction ID is being brute-forced. We wrote a C script ([flood.c](dns_cache_poisoning/attack/flood.c)) to efficiently generate and send UDP packets. Since the real server usually responds in a couple of milliseconds, the attack succedes if the transaction ID is lower (tested earlier in our attack script). The script must also generate manuall UDP packets to be able to pretend they originate from the IP that the DNS server expects (9.9.9.9 in our case).
 
 Additionally, for the DNS cache poisoning to work we must disable DNSSEC. DNSSEC is a security extension formalized in 2004 (RFC3833), which add signatures to ensure only valid DNS responses are considered. There are however many DNS server today which do not use DNSSEC.
 
@@ -124,9 +125,17 @@ Once the relations have been gathered, we build an $R \times B$ matrix, where $B
 
 We are looking for a subset of rows such that the sum of each exponent is congruent to $0 \pmod{2}$. This will ensure that the product of the corresponding $Q(x)$ values forms a perfect square, yielding a factorization of $N$.
 
+##### Optimizing the Quadratic Sieve
+
+An obvious optimization is **parallelization**. To parallelize, we split the sieving interval into many small chunks and send out the sieving tasks to several workers - which can live on different computers. This splitting also makes sieving large intervals manageable on single computers, and not all chunks have to be done concurrently.
+
 The **One-Large-Prime (1LP) variant** is an optimization of the basic QS algorithm. In the basic QS, only values $Q(x)$ that are completely $B$-smooth (_full_ relations) are accepted, whereas the 1LP variant also accepts _partial_ relations – $Q(x)$ values that factor over the factor base except for one extra “large” prime slightly above the bound $B$.
 These partial relations are stored and temporarily and latered combined into pairs that share the same large prime. When two partial relations are multiplied together, the large prime acquires an even exponent that cancels out $\pmod{2}$, thus producing a full relation.
 This way, the number of usable relations is increased without great computational increase.
+
+Lastly, there is the **Multi-Polynomial Quadratic Sieve (QLP)** which ...
+<!--- TODO
+--->
 
 #### More details on the maths behind the Quadratic Sieve is available in [math.md](math.md).
 
@@ -227,7 +236,7 @@ The mitm saves the master secret in `/pcap/keyfile.log`. In wireshark, go to Pre
 
 In this demo the only encrypted messages are the Finished messages, but as the connection succeeds, further encrypted application data could be captured and decrypted as well.
 
-### Using factorization
+### Using the Quadratic Sieve
 
 > #### Requirements
 > 
@@ -247,6 +256,9 @@ $ python3 run.py factor -N "$N"
 
 # generate 100-bit number and factor it
 $ python3 run.py factor --bits 100
+
+# generate 100-bit number and factor it, making use of 8 parallel jobs (processes)
+$ python3 run.py factor --bits 100 -J 8
 ```
 
 There are many arguments that can be passed and many more ways to run the sieve, find out more in [factorization/readme.md](factorization/readme.md).
@@ -259,7 +271,7 @@ Note that the Quadratic Sieve should only be used for small enough numbers. It i
 
 Our implementation is reasonable for numbers with less than 150 bits, and fast for numbers with less than 120 bits. An estimated running time can be achieved by running the algorithm against an input (use the number of chunks, $-1$). This may still crash with large enough inputs!
 
-For example, on our computer (8 cores, ~4 GHz, 16 G):
+For example, on our computer (8 cores, ~4 GHz, 16 GB RAM):
 
 * 200 bits takes 5 hours.
 * 220 bits takes 75 hours.
@@ -288,22 +300,39 @@ Previous practical demonstration:
 - https://github.com/eniac/faas/tree/master
 - https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
 
+DNS Cache Poisoning:
+
+- https://www.cloudflare.com/learning/dns/dns-cache-poisoning/
+- https://seedsecuritylabs.org/Labs_16.04/PDF/DNS_Remote.pdf
+- https://www.utc.edu/sites/default/files/2021-04/dns.pdf
+- https://datatracker.ietf.org/doc/html/rfc1035
+- https://gieseanw.wordpress.com/2010/03/25/building-a-dns-resolver/
+- https://gist.github.com/leonid-ed/909a883c114eb58ed49f
+
+Factorization / Quadratic Sieve:
+
+* https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
+* https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
+
+<!---TODO
+Add references for Quadratic Sieve
+Add references for GNFS
+Add references for Alex's part?
+--->
+
 ## DD2391 Project Final 18
 
 By: Alexandru Carp, Elias Lundell, Eskil Nyberg, Venetia Ioanna Papadopoulou
 
 # Various project information
 
-## The usage of LLM:s, AI and borrowed code
+## Notice on the usage of LLM:s, AI and borrowed code
 
 For this project, LLM:s have been used to understand theory, and write, improve, comment, and optimize code for the various parts of the project. No code has been borrowed for this project, and AI hasn't been otherwise used.
 
-In particular, the basic quadratic sieve was written with little-to-no input from AI, i.e. the one in [factorization/src/qslib/base.py](factorization/src/qslib/base.py). Other iterations used LLM:s extensively for optimizations and so forth.
+In particular, the basic quadratic sieve was written with little-to-no input from LLM:s, i.e. the one in [factorization/src/qslib/base.py](factorization/src/qslib/base.py). Other iterations used LLM:s extensively for optimizations and so forth.
 
-TODO
-
-<!---TODO
---->
+The [flood.c](dns_cache_poisoning/attack/flood.c) was initially structed by the use of LLMs but later revised and refined to work according to RFC1035 manually; little of the original LLM-generated-code is still present in the file. Parts of it (generating manual UDP packets) are based on [udp_to_remote.c](https://gist.github.com/leonid-ed/909a883c114eb58ed49f).
 
 ## Contribution documentation
 
@@ -327,7 +356,7 @@ TODO
 
 * Together with Ioanna, did plenty of research to understand the inner workings and correct implementation of the Quadratic Sieve algorithm, along with potential optimizations of various kinds.
 * Together with Ioanna, wrote [factorization/math.md](factorization/math.md) to understand and make transparent the math behind the Quadratic Sieve.
-* Implemented the linear algebra for the Quadratic Sieve, in particular steps 5 and 6 in [factorization/src/qslib/base.py](factorization/src/qslib/base.py).
+* Implemented the linear algebra for the Quadratic Sieve, in particular steps 5 and 6 in [factorization/src/qslib/base.py](factorization/src/qslib/base.py). Little to no LLM:s were used for this.
 * Put the Quadratic Sieve together and verified the execution process.
 * Optimized the Quadratic Sieve (with numpy, SageMath and parallelization) *--- LLM:s were used for this!*
 * Tried many more optimizations, including numba (njit/jit), further numpy optimizations, parallelization variants (such as multithreading without Python's GIL), and SageMath (external). *--- LLM:s were used for this!*
@@ -338,7 +367,10 @@ TODO
 
 ### Venetia Ioanna Papadopoulou
 
-TODO
+* Together with Eskil, did plenty of research to understand the inner workings and correct implementation of the Quadratic Sieve algorithm, along with potential optimizations of various kinds.
+* Together with Eskil, wrote [factorization/math.md](factorization/math.md) to understand and make transparent the math behind the Quadratic Sieve.
+<!---IOANNA: Change this if you want!
+--->
 
 <!---TODO
 --->
