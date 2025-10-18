@@ -8,7 +8,8 @@ services:
     ports:
       - "8443:8443"
     volumes:
-      - server_certs:/shared_certs
+      - ./server_certs:/shared_certs
+      - ./keys:/keys
 
   # browser:
   #   build: ./browser
@@ -31,13 +32,18 @@ services:
     networks:
       - freaknet
     volumes:
-      - server_certs:/shared_certs
-
+      - ./server_certs:/shared_certs
   mitm:
     build: ./mitm
     container_name: freak-mitm
     networks:
       - freaknet
+    ports:
+    - "8444:8443"
+    volumes:
+      - ./pcap/:/pcap/
+      - ./keys:/keys
+
 
 networks:
   freaknet:
