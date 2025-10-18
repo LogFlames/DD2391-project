@@ -11,7 +11,7 @@
 [**FREAK (CVE-2015-0204)**](#freak-cve-2015-0204)
 
 0. [**Table of Contents**](#table-of-contents)
-1. [**About FREAK**](#about-freak)
+1. [**Project summary**](#project-summary)
 2. [**Technical documentation**](#technical-documentation)
    1. [**About RSA**](#about-rsa)
    2. [**DNS cache poisoning**](#dns-cache-poisoning)
@@ -21,8 +21,9 @@
 3. [**Performing the exploit**](#performing-the-exploit)
    1. [**Using DNS cache poisoning**](#using-dns-cache-poisoning)
    2. [**Using MitM**](#using-mitm)
-   3. [**Using Factorization**](#using-factorization)
-4. [**Mitigation / Defense against the attack**](#1-about-freak)
+   3. [**Using the Quadratic Sieve**](#using-the-quadratic-sieve)
+4. [**Mitigation / Defense against the attack**](#mitigationdefense-against-the-attack)
+5. [**References**](#references)
 
 ---
 
@@ -227,7 +228,7 @@ The mitm saves the master secret in `/pcap/keyfile.log`. In wireshark, go to Pre
 
 In this demo the only encrypted messages are the Finished messages, but as the connection succeeds, further encrypted application data could be captured and decrypted as well.
 
-### Using factorization
+### Using the Quadratic Sieve
 
 > #### Requirements
 > 
@@ -294,7 +295,7 @@ By: Alexandru Carp, Elias Lundell, Eskil Nyberg, Venetia Ioanna Papadopoulou
 
 # Various project information
 
-## The usage of LLM:s, AI and borrowed code
+## Notice on the usage of LLM:s, AI and borrowed code
 
 For this project, LLM:s have been used to understand theory, and write, improve, comment, and optimize code for the various parts of the project. No code has been borrowed for this project, and AI hasn't been otherwise used.
 
