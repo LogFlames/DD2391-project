@@ -293,12 +293,21 @@ Previous practical demonstration:
 - https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
 
 DNS Cache Poisoning:
+
 - https://www.cloudflare.com/learning/dns/dns-cache-poisoning/
 - https://seedsecuritylabs.org/Labs_16.04/PDF/DNS_Remote.pdf
 - https://www.utc.edu/sites/default/files/2021-04/dns.pdf
 - https://datatracker.ietf.org/doc/html/rfc1035
 - https://gieseanw.wordpress.com/2010/03/25/building-a-dns-resolver/
 - https://gist.github.com/leonid-ed/909a883c114eb58ed49f
+
+Factorization / Quadratic Sieve:
+
+<!---TODO
+Add references for Quadratic Sieve
+Add references for GNFS
+Add references for Alex's part?
+--->
 
 ## DD2391 Project Final 18
 
@@ -313,9 +322,6 @@ For this project, LLM:s have been used to understand theory, and write, improve,
 In particular, the basic quadratic sieve was written with little-to-no input from LLM:s, i.e. the one in [factorization/src/qslib/base.py](factorization/src/qslib/base.py). Other iterations used LLM:s extensively for optimizations and so forth.
 
 The [flood.c](dns_cache_poisoning/attack/flood.c) was initially structed by the use of LLMs but later revised and refined to work according to RFC1035 manually; little of the original LLM-generated-code is still present in the file. Parts of it (generating manual UDP packets) are based on [udp_to_remote.c](https://gist.github.com/leonid-ed/909a883c114eb58ed49f).
-
-<!---TODO
---->
 
 ## Contribution documentation
 
