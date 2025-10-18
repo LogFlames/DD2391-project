@@ -280,13 +280,25 @@ $ python3 run.py factor --bits 100
 $ python3 run.py factor --bits 100 -J 8
 ```
 
-There are many arguments that can be passed and many more ways to run the sieve, find out more in [factorization/readme.md](factorization/readme.md).
-
-To factorize a number for the attack, we run:
+To factorize a number for the attack and subsequently find the RSA private exponent, we run:
 ```bash
-TODO!!!
+$ cd factorization/
+$ python3 break_rsa.py -N "<RSA modulus here>" -e "<RSA public exponent here>"
 ```
-Note that the Quadratic Sieve should only be used for small enough numbers. It is the fastest for numbers with less than 100 digits (330 bits) but that doesn't mean it is fast with such numbers: that would require parallelization across computers and more efficient code than we have written, and preferably not Python code.
+
+This of course won't actually work, since RSA moduli are too large to factor with the Quadratic Sieve.
+
+For more information on how to use the programs, run:
+```bash
+$ cd factorization/
+$ python run.py -h
+$ python break_rsa.py -h
+```
+Find out more in [factorization/readme.md](factorization/readme.md).
+
+---
+
+The Quadratic Sieve should only be used for small enough numbers. It is the fastest for numbers with less than 100 digits (330 bits) but that doesn't mean it is fast with such numbers: that would require parallelization across computers and more efficient code than we have written, and preferably not Python code.
 
 Our implementation is reasonable for numbers with less than 150 bits, and fast for numbers with less than 120 bits. An estimated running time can be achieved by running the algorithm against an input (use the number of chunks, $-1$). This may still crash with large enough inputs!
 
