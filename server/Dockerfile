@@ -4,9 +4,7 @@ RUN apt-get update && \
     apt-get install -y build-essential zlib1g-dev wget && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src
-RUN wget https://www.openssl.org/source/openssl-1.0.1f.tar.gz
-RUN tar -xzvf openssl-1.0.1f.tar.gz
+COPY openssl-1.0.1f /usr/src/openssl-1.0.1f
 WORKDIR /usr/src/openssl-1.0.1f
 RUN ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl shared zlib
 RUN make
