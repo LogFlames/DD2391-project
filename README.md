@@ -101,19 +101,32 @@ Another important flaw that made the attack possible was the reuse of the tempor
 
 ### Factorization
 
+To break the RSA key, we want to factorize the modulus of the public key so that we can compute the private key. The modulus is on the form $N=p*q$, where $p$ and $q$ are large primes. For **FREAK** in particular, the modulus is 512 bits (155 digits) and would require the employment of the algorithm **GNFS, the General Number Field Sieve** which is the fastest known algorithm for factoring large numbers. However, the GNFS is both:
+
+* incredibly difficult, both to understand and to implement, requiring knowledge of number theory far beyond what we have learnt previously
+* expensive, costing about $100 in cloud resources to factorize a 512-bit RSA (with the most efficient implementations known)
+
+To appropriate the factorization to our project, we have instead elected to implement the Quadratic Sieve - the fastest algorithm known for factoring numbers smaller than 100 digits. The GNFS is based upon some of what the Quadratic Sieve uses, and thus the QS serves as an instructive example for how sieving works, without making it too difficult to understand and too costly to test.
+
+Now we will go over (in broad terms) the maths behind the Quadratic Sieve.
+
+#### The Quadratic Sieve
+
 Given a number $N$ that we want to factor, the **Quadratic Sieve (QS) algorithm** aims to find numbers $x, y$ such that: $$ x^2 \equiv y^2 \pmod{N} \text{ and } x \not\equiv\pm  y \pmod{N} $$
 
-Such a pair of numbers fulfills: $$ x^2 \equiv y^2 \pmod{N} \implies (x-y)(x+y) \equiv 0 \pmod{N} $$ and therefore, the untrivial factors of $N$ can be obtained via the greatest common divisor: $$\gcd{(x-y, N)} \text{ and } \gcd{(x+y, N)}$$
+Such a pair of numbers fulfill: $$ x^2 \equiv y^2 \pmod{N} \implies (x-y)(x+y) \equiv 0 \pmod{N} $$ and therefore, the untrivial factors of $N$ can be obtained via the greatest common divisor: $$\gcd{(x-y, N)} \text{ and } \gcd{(x+y, N)}$$
 
-The main idea of QS is to find values of $x$ for which $Q(x) = x^2 - N$ factors completely over the factor base – a set of prime numbers less than some bound $B$. For a prime number $p$ to be in the factor base, two things must be true: $$ (p < B) \text{ and } (N \text{ is a quadratic residue } \pmod{p})$$
+The main idea of QS is to find values of $x$ for which $Q(x) = x^2 - N$ factors completely over the factor base – a set of prime numbers less than some bound $B$. For a prime number $p$ to be in the factor base, two things must be true:
+
+$$ (p < B) \text{\quad and\quad } (N \text{ is a quadratic residue }(\text{mod } p))$$
 
 If $N$ is not a quadratic residue $\pmod{p}$ for some prime $p$, then $Q(x)$ will never be divisible by $p$ for any value of $x$, and therefore such primes are not useful to the QS algorithm. We use Euler's criterion to compute the Legendre symbol and filter out such primes.
 
-Next, for each prime $p$ in the factor base we find all the roots $r$ $\pmod{p}$ of this equation: $$x^2 \equiv N \pmod{p}$$ meaning, we find all values of $x$ for which $p$ divides $Q(x)$. For each root $r$, every $$ x \equiv r \pmod{p} \text{ will make } p|(x^2−n)$$.
+Next, for each prime $p$ in the factor base we find all the roots $r$ $\pmod{p}$ of this equation: $$x^2 \equiv N \pmod{p}$$ meaning, we find all values of $x$ for which $p$ divides $Q(x)$. For each root $r$, every $x \equiv r \pmod{p}$ will make $p|(x^2−n).$
 
 From all the different $Q(x)$ values, we keep only those that can fully factor over the factor base, meaning all the factors are from the factor base and only the factor base – these are called $B$-smooth numbers. For each $B$-smooth number we keep a relation – a vector of exponents $\pmod{2}$ for each prime in the factor base.
 
-Once the relations have been agthered, we build an $R \times B$ matrix, where $B$ is the number of primes in the factor base and $R$ the number of $B$-smooth numbers. Row $i$ the relation of $Q(x_i)$.
+Once the relations have been gathered, we build an $R \times B$ matrix, where $B$ is the number of primes in the factor base and $R$ the number of $B$-smooth numbers. Row $i$ represents the relation of $Q(x_i)$.
 
 We are looking for a subset of rows such that the sum of each exponent is congruent to $0 \pmod{2}$. This will ensure that the product of the corresponding $Q(x)$ values forms a perfect square, yielding a factorization of $N$.
 
@@ -121,13 +134,25 @@ The **One-Large-Prime (1LP) variant** is an optimization of the basic QS algorit
 These partial relations are stored and temporarily and latered combined into pairs that share the same large prime. When two partial relations are multiplied together, the large prime acquires an even exponent that cancels out $\pmod{2}$, thus producing a full relation.
 This way, the number of usable relations is increased without great computational increase.
 
+#### More details on the maths behind the Quadratic Sieve is available in [math.md](math.md).
 
-The **General Number Field Sieve (GNFS) algorithm** shares the same core concept with the Quadratic Sieve - finding $B$-smooth numbers and solvinf a matrix of congruences – but unlike QS, it uses multiple polynomials defined over higher-degree algebraic number fields and generates relations in both the rational and algebraic domains.
+#### What's missing for the GNFS?
+
+The **General Number Field Sieve (GNFS) algorithm** shares the same core concept with the Quadratic Sieve - finding $B$-smooth numbers and solving a matrix of congruences – but unlike the QS, it uses multiple polynomials defined over higher-degree algebraic number fields and generates relations in both the rational and algebraic domains.
+
+Essentially, it could be said that QS is a special case of GNFS, limited to the rational number field ($\mathbb{Q}$). GNFS generalizes QS and moves from working in $\mathbb{Q}$ to working in polynomial rings. More specifically, in broad terms, the parallels between the QS and GNFS are:
+
+* Both the GNFS/SNFS and the QS look for numbers on the form $x^2=y^2\pmod{N}$.
+* The factor base is instead elements of these fields.
+* Sieving is done to check a bunch of polynomials for certain attributes (rather than the $Q(x)=(x+\sqrt{N})^2-N$ that the QS uses), eventually finding polynomials which fulfill a property related to B-smoothness.
+* With enough relations the GNFS eventually finds squares in both number fields, which are mapped to $x^2=y^2\pmod{N}$ that we can check, in contrast to products of $Q(x)$. This is essentially analogous with how we find square products of $Q(x)$.
+
 Some of the improvements in GNFS are:
 - the use of Lattice Sieving (extension of the QS sieving in higher dimensions)
 - the "Multiple-large-primes" variants (extension of the 1LP variant to two or more large primes per relation)
+- due to the massive "factor base" in question, the Block Lanczos algorithm is used instead of standard Gaussian elimination to reach advertised speeds, which also partially allows parallelization.
 
-Essentially, it could be said that QS is a special case of GNFS, limited to the rational number field ($\mathbb{Q}$). GNFS generalizes QS and moves from working in $\mathbb{Q}$ to working in polynomial rings.
+Because the Number Field Sieves contains a lot of number theory - complex numbers, polynomials, etc. - the math and algorithm used becomes really complex really quickly.
 
 ### Breaking encryption
 
@@ -210,7 +235,35 @@ In this demo the only encrypted messages are the Finished messages, but as the c
 
 ### Using factorization
 
-Eskil and Ioanna
+> #### Requirements
+> 
+> Install Python requirements with
+> ```bash
+> $ cd ./factorization
+> $ python3 -m pip install requirements.txt
+> ```
+
+The Quadratic Sieve can be interacted with via
+```bash
+$ cd factorization
+$ N="730263881119727212489103570233" # 100-bit number with two large prime factors
+
+# factor N
+$ python3 run.py factor -N "$N"
+
+# generate 100-bit number and factor it
+$ python3 run.py factor --bits 100
+```
+
+There are many arguments that can be passed and many more ways to run the sieve, find out more in [factorization/readme.md](factorization/readme.md).
+
+To factorize a number for the attack, we run:
+```bash
+TODO!!!
+```
+Note that the Quadratic Sieve should only be used for small enough numbers. It is the fastest for numbers with less than 100 digits (330 bits) but that doesn't mean it is fast with such numbers: that would require parallelization across computers and more efficient code than we have written, and preferably not Python code.
+
+Our implementation is reasonable for numbers with less than 150 bits, and fast for numbers with less than 120 bits. An estimated running time can be achieved by running the algorithm against an input (use the number of chunks, $-1$).
 
 ## Mitigation/Defense against the attack
 
@@ -241,7 +294,16 @@ TODO
 
 ### Eskil Nyberg
 
-TODO
+* Together with Ioanna, did plenty of research to understand the inner workings and correct implementation of the Quadratic Sieve algorithm, along with potential optimizations of various kinds.
+* Together with Ioanna, wrote [factorization/math.md](factorization/math.md) to understand and make transparent the math behind the Quadratic Sieve.
+* Implemented the linear algebra for the Quadratic Sieve, in particular steps 5 and 6 in [factorization/src/qslib/base.py](factorization/src/qslib/base.py).
+* Put the Quadratic Sieve together and verified the execution process.
+* Optimized the Quadratic Sieve (with numpy, SageMath and parallelization) *--- LLM:s were used for this!*
+* Tried many more optimizations, including numba (njit/jit), further numpy optimizations, parallelization variants (such as multithreading without Python's GIL), and SageMath (external). *--- LLM:s were used for this!*
+* Refactored and deduplicated the code to make transparent everything behind our implementation of the Quadratic Sieve, see [factorization/qslib](factorization/src/qslib/).
+* Wrote an [extensive interface](factorization/src/quadratic_sieve.py) for interaction with the Quadratic Sieve and the various variants we have tried. See [factorization/readme.md](factorization/readme.md) for details.
+* Wrote interfaces to interact with the RSA modulus and prepare a private key from a public key, see [factorization/break_rsa.py](factorization/break_rsa.py). *--- LLM:s were used for this!*
+* Hunted all the bugs associated with the above.
 
 ### Venetia Ioanna Papadopoulou
 
