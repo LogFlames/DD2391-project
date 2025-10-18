@@ -303,6 +303,9 @@ DNS Cache Poisoning:
 
 Factorization / Quadratic Sieve:
 
+* https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
+* https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
+
 <!---TODO
 Add references for Quadratic Sieve
 Add references for GNFS
