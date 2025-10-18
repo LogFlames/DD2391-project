@@ -211,3 +211,4 @@ Tried sieving optimizations:
 * Using gmpy2 bigintegers for operations in Python. Didn't help.
 * Using numpy arrays for efficient storage of integers (as dtype=object). Didn't help.
 * Using numba's jit/njit compilations. Didn't help or couldn't handle large numbers.
+* Sieving in C (via LLM translation from Python). Due to complexity of transferring bigints (GMP) from C to Python, this does not seem possible / fast.
