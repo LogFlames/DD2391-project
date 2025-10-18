@@ -192,15 +192,36 @@ We believe the QS serves as an illustrative example for how the process of using
 
 The SNFS is slightly faster, but can only factor numbers on the form $r^e \pm s$.
 
+## Computing the private key from output
+
+A helper function is made available to interface directly with an RSA public key file, or to interface with an extracted RSA modulus. It requires knowledge of the public exponent $e$. It returns the private exponent $d$ and the factors of the modulus. Note that the Quadratic Sieve cannot actually factorize RSA-size numbers!
+
+```bash
+$ cd ./factorization
+$ python3 break_rsa.py -h
+```
+
+Example usage, which outputs the factors of the RSA modulus and the private exponent $d$.
+
+```bash
+$ modulus="..." # RSA modulus
+$ e="..." # public exponent
+$ python3 break_rsa.py -N "$modulus" -e "$e" -J 8 # use 8 parallel jobs
+```
+
 ## Implementation details
 
-* src/qslib/
-  * [base.py](src/qslib/base.py) --- Implements a basic Quadratic Sieve with few optimizations and no parallelization. It is good example code to follow to understand the implementation.
-  * [np_sieving.py](src/qslib/np_sieving.py) --- Implements improvements via numpy for the sieving, providing an about 15x speedup (no asymptotic improvement).
-  * [parallel_np_sieving.py](src/qslib/parallel_np_sieving.py) --- Implements parallelization (via `multiprocessing` by default). Don't use `multithreading` unless you know what you're doing (it's slower).
-  * [one_large_prime.py](src/qslib/one_large_prime.py) --- Implements the "one large prime" variant of the sieve, which doesn't filter out numbers with large primes in the hope of them helping to find enough relations in the end.
-  * [complete.py](src/qslib/complete.py) --- The production ready variant complete with debug, timing information, retries, progress bars via tqdm, and some other quality of life features. This is the default variant used!
-  * [sagemath_linalg.py](src/qslib/sagemath_linalg.py) --- Uses the SageMath library for faster linear algebra. Due to the complexity of installing SageMath and making it available to Python, this is not the default. Note: SageMath cannot be installed via pip!
+* [run.py](run.py) --- Runs quadratic_sieve.py
+* [break_rsa.py](break_rsa.py) --- An example interface for how to use this to break RSA. Doesn't actually work due to RSA moduli sizes.
+* src/
+  * [quadratic_sieve.py](src/quadratic_sieve.py) --- An interface to use the various modules hassle-free. Run with [run.py](run.py) or load in a REPL.
+  * qslib/
+    * [base.py](src/qslib/base.py) --- Implements a basic Quadratic Sieve with few optimizations and no parallelization. It is good example code to follow to understand the implementation.
+    * [np_sieving.py](src/qslib/np_sieving.py) --- Implements improvements via numpy for the sieving, providing an about 15x speedup (no asymptotic improvement).
+    * [parallel_np_sieving.py](src/qslib/parallel_np_sieving.py) --- Implements parallelization (via `multiprocessing` by default). Don't use `multithreading` unless you know what you're doing (it's slower).
+    * [one_large_prime.py](src/qslib/one_large_prime.py) --- Implements the "one large prime" variant of the sieve, which doesn't filter out numbers with large primes in the hope of them helping to find enough relations in the end.
+    * [complete.py](src/qslib/complete.py) --- The production ready variant complete with debug, timing information, retries, progress bars via tqdm, and some other quality of life features. This is the default variant used!
+    * [sagemath_linalg.py](src/qslib/sagemath_linalg.py) --- Uses the SageMath library for faster linear algebra. Due to the complexity of installing SageMath and making it available to Python, this is not the default. Note: SageMath cannot be installed via pip!
 
 ## Tried, and failed, optimizations
 

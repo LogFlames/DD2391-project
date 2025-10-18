@@ -6,7 +6,7 @@ Written with LLM assistance.
 """
 
 import argparse
-from src.qslib.base import quadratic_sieve
+from src.qslib.complete import quadratic_sieve
 import re
 import base64
 from cryptography.hazmat.primitives import serialization
@@ -28,7 +28,9 @@ def read_n_from_pubkey(filename):
         raise ValueError("No valid public key found in the file.")
 
 def factor_rsa_modulus(N):
-    p = quadratic_sieve.quadratic_sieve(N)
+    global VERBOSE
+    global NUM_JOBS
+    p = quadratic_sieve(N, debug=VERBOSE, jobs=NUM_JOBS, one_large_prime=True)
     if 1 < p < N:
         q = N // p
         assert p * q == N
@@ -43,9 +45,12 @@ def generate_private_key(p, q, e):
 def main():
     parser = argparse.ArgumentParser(description="QS factorization of RSA modulus to break RSA.")
     parser.add_argument("--pubkey", type=str, help="Path to PEM-formatted RSA public key file (incompatible with --modulus)")
-    parser.add_argument("--modulus", type=int, help="RSA modulus to factor (incompatible with --pubkey)")
-    parser.add_argument("--e", type=int, default=65537, help="Public exponent (default: 65537)")
+    parser.add_argument("-N", "--modulus", type=int, help="RSA modulus to factor (incompatible with --pubkey)")
+    parser.add_argument("-e", "--e", type=int, default=65537, help="Public exponent (default: 65537)")
     parser.add_argument("--outfile", type=str, help="Output file for private key")
+    parser.add_argument("-J", "--jobs", type=int, default=4, help="Number of parallel jobs to use in QS (default: 4)")
+    parser.add_argument("-R", "--retries", type=int, default=3, help="Number of retries for QS (default: 3)")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
     args = parser.parse_args()
 
     if not args.pubkey and not args.modulus:
@@ -59,6 +64,11 @@ def main():
     if args.pubkey and args.modulus:
         print("Please provide either a public key file or a modulus, not both.")
         return
+
+    global VERBOSE
+    VERBOSE = 1 if args.verbose else 0
+    global NUM_JOBS
+    NUM_JOBS = args.jobs
 
     if args.pubkey:
         try:
@@ -88,30 +98,29 @@ def main():
         print(f"ERROR: Factorization unsuccessful.")
         return
     
-    if args.pubkey:
-        e = args.e
-        print(f"Generating private key with e={e}...")
-        d = generate_private_key(p, q, e)
-        print(f"Private exponent d: {d}")
+    e = args.e
+    print(f"Generating private key with e={e}...")
+    d = generate_private_key(p, q, e)
+    print(f"Private exponent d: {d}")
 
-        if args.outfile:
-            with open(args.outfile, 'w') as f:
-                private_numbers = rsa.RSAPrivateNumbers(
-                    p=p,
-                    q=q,
-                    d=d,
-                    dmp1=d % (p - 1),
-                    dmq1=d % (q - 1),
-                    iqmp=pow(q, -1, p),
-                    public_numbers=rsa.RSAPublicNumbers(e, n)
-                )
-                private_key = private_numbers.private_key(backend=default_backend())
-                pem = private_key.private_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.TraditionalOpenSSL,
-                    encryption_algorithm=serialization.NoEncryption()
-                )
-                f.write(pem.decode())
+    if args.outfile:
+        with open(args.outfile, 'w') as f:
+            private_numbers = rsa.RSAPrivateNumbers(
+                p=p,
+                q=q,
+                d=d,
+                dmp1=d % (p - 1),
+                dmq1=d % (q - 1),
+                iqmp=pow(q, -1, p),
+                public_numbers=rsa.RSAPublicNumbers(e, n)
+            )
+            private_key = private_numbers.private_key(backend=default_backend())
+            pem = private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption()
+            )
+            f.write(pem.decode())
 
 if __name__ == "__main__":
     main()
