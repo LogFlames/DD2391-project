@@ -345,8 +345,12 @@ DNS Cache Poisoning:
 
 Factorization / Quadratic Sieve:
 
-* https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
+* https://math.dartmouth.edu/~carlp/PDF/qs08.pdf https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
+* https://markyangliu.github.io/papers/sieve.pdf
+* https://maxwellmlin.com/assets/pdf/sieve-2024.pdf
+* https://people.maths.ox.ac.uk/mavroyiakoum/QsievePoster.pdf
 * https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
+* https://ritter.vg/misc/stuff/gnfs-beginners-guide.pdf
 
 TLSv1.0 protocol:
 * https://www.ietf.org/rfc/rfc2246.txt
