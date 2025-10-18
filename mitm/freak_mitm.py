@@ -333,10 +333,14 @@ def forward(src, dst, direction, session: TLSSession | None = None):
                             session.handshake_messages_server_view += payload[offset:offset+4+hlen]
                         elif hname == 'finished':
                             logger.info(f"Finished message detected: {payload[offset:offset+4+hlen].hex()}")
+                            if direction == 'client->server':
+                                session.handshake_messages_client_view += payload[offset:offset+4+hlen]
                             new_verify = session.compute_verify_data(from_client=(direction=='client->server'))
                             # first byte is handshake type, next 3 bytes are length
-                            new_payload = payload[:offset+4] + new_verify + payload[offset+4+hlen:]
-                            orig_payload = session.re_encrypt_first_tls(new_payload, from_client=(direction=='client->server'))
+                            new_payload = payload[:offset+4] + new_verify
+                            logger.info(f"New finished message: {new_payload[offset:offset+4+hlen].hex()}")
+                            orig_payload = session.re_encrypt_first_tls(logger, new_payload, from_client=(direction=='client->server'))
+                            break
                         else:
                             session.handshake_messages_client_view += payload[offset:offset+4+hlen]
                             session.handshake_messages_server_view += payload[offset:offset+4+hlen]

@@ -8,7 +8,7 @@ RUN apt-get update && \
 
 
 # Install Python dependencies: scapy with TLS support and cryptography
-RUN pip install --no-cache-dir 'scapy[complete]' cryptography pycryptodome tlsmate
+RUN pip install --no-cache-dir 'scapy[complete]' cryptography pycryptodome
 
 # Set up a working directory
 WORKDIR /srv

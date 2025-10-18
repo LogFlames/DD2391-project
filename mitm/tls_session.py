@@ -77,13 +77,13 @@ class TLSSession:
         if self.client_random is None:
             return
         line = f"CLIENT_RANDOM {self.client_random.hex()} {ms.hex()}"
+        # Write to file in append mode
+        with open("/pcap/keyfile.log", "a") as f:
+            f.write(line + "\n")
         if logger is not None:
             logger.info(line)
             # Also print in OpenSSL s_client session format for convenience
             logger.info(f"Master-Key: {ms.hex()}")
-            logger.info(f"Pre-Master-Key: {self.pre_master_secret.hex()}")
-            logger.info(f"Client Random: {self.client_random.hex()}")
-            logger.info(f"Server Random: {self.server_random.hex()}")
         else:
             print(line)
             print(f"Master-Key: {ms.hex()}")
@@ -141,7 +141,7 @@ class TLSSession:
         self.server_key = final_server_key
         self.client_mac_key = client_write_mac
         self.server_mac_key = server_write_mac
-    def re_encrypt_first_tls(self, data: bytes, from_client: bool = True) -> bytes | None:
+    def re_encrypt_first_tls(self, logger, data: bytes, from_client: bool = True) -> bytes | None:
         """
         Re-encrypt TLS_RSA_EXPORT_WITH_DES40_CBC_SHA encrypted records using the first IV.
         Implements key/IV derivation per export-DES40 specification and
@@ -162,19 +162,22 @@ class TLSSession:
         except Exception as e:
             raise ImportError("pycryptodome (Crypto.Cipher.DES) is required for DES encryption") from e
 
-        mac = self._tls10_hmac_md5(self.client_mac_key if from_client else self.server_mac_key, 0,
-                                   23,  # content type: application data
+        mac = self._tls10_hmac_sha1(self.client_mac_key if from_client else self.server_mac_key, 0,
+                                   22, #handshake type: finished
                                    b'\x03\x01',  # version: TLS 1.0
                                    data)
         data_to_encrypt = data + mac
         # PKCS#7 padding (block size 8)
         pad_len = 8 - (len(data_to_encrypt) % 8)
-        padded_data = data_to_encrypt + bytes([pad_len] * pad_len)
+        padded_data = data_to_encrypt + bytes([pad_len - 1] * pad_len)
+
+        logger.info(f"plaintxt+mac+pad: {padded_data.hex()}")
 
         cipher = DES.new(key, DES.MODE_CBC, iv)
         ciphertext = cipher.encrypt(padded_data)
 
         return ciphertext
+
     def decrypt_tls(self, data: bytes, from_client: bool = True) -> bytes | None:
         """
         Decrypt TLS_RSA_EXPORT_WITH_DES40_CBC_SHA encrypted records.
@@ -283,9 +286,9 @@ class TLSSession:
         sha1_bytes = self._p_hash(s2, data, out_len, hashlib.sha1)
         return bytes(a ^ b for a, b in zip(md5_bytes, sha1_bytes))
 
-    def _tls10_hmac_md5(self, mac_key: bytes, seq_num: int, content_type: int,
+    def _tls10_hmac_sha1(self, mac_key: bytes, seq_num: int, content_type: int,
                    version: bytes, plaintext: bytes) -> bytes:
         seq = seq_num.to_bytes(8, 'big')
         length = len(plaintext).to_bytes(2, 'big')
         mac_input = seq + bytes([content_type]) + version + length + plaintext
-        return hmac.new(mac_key, mac_input, hashlib.md5).digest()
+        return hmac.new(mac_key, mac_input, hashlib.sha1).digest()
