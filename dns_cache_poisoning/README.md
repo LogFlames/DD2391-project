@@ -37,3 +37,6 @@ DNS RFC:
 
 Building a DNS resolver:
 - https://gieseanw.wordpress.com/2010/03/25/building-a-dns-resolver/
+
+Custom UDP packets:
+- https://gist.github.com/leonid-ed/909a883c114eb58ed49f
