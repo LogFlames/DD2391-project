@@ -32,12 +32,31 @@
 2. [**Contribution documentation**](#contribution-documentation)
 3. [**Presentation material**](#presentation-material)
 
+## Directory structure
+
+Note: as per request, this README.md contains all details on the project necessary for the report. Other READMEs and files contain auxiliary or unnecessary information.
+
+Overview:
+* [client/](client/) - installation files for the client
+* [server/](server/) - installation files for the server
+* [dns_cache_poisoning/](dns_cache_poisoning/)
+  * [dns_cache_poisoning/README.md](dns_cache_poisoning/README.md) - heavy details on the DNS cache poisoning and how to use it.
+  * ...
+* [mitm/](mitm/) - files for the MitM attack
+* [factorization/](factorization/)
+  * [readme.md](factorization/readme.md) - heavy details on the Quadratic Sieve and how to use it. Detailed comparisons to the GNFS.
+  * [math.md](factorization/math.md) - heavy details on the math behind the Quadratic Sieve and its implementation
+  * ...
+* [infrastructure.md](infrastructure.md) - Details on the interworkings and infrastructure that the DNS cache poisoning and MitM uses.
+* [README.md](README.md) - This file, and the project report.
+
 ## Project summary
 
-Project summary: Eskil
-
-<!---TODO
---->
+This is a project perfomed as part of the DD2391 Cybersecurity Overview course at KTH Royal Institute of Technology in Stockholm, Sweden. It explores and tries to perform a proof-of-concept of the CVE knows as FREAK. To do this we perform 4 distinct steps:
+* Setup and explore ways to perform man-in-the-middle attacks to proxy a server. Implement a proof-of-concept for DNS Cache Poisoning.
+* Research, explore and successfully abuse a bug in SSL 1.0.1f to make the key negotiation use an RSA export key (of limited size due to USA encryption export restrictions)
+* Explore fast prime factorization methods, implement algorithms to perform factorization of large primes. Implementing an interface to work on RSA keys and get the private key from the public key.
+* Use the private key to finish the handshake using the smaller RSA key, making the proxy's interference in the key negotiation invisible to the server and client, and listen to all subsequent encrypted traffic.
 
 ## Technical documentation
 
@@ -368,11 +387,11 @@ The [flood.c](dns_cache_poisoning/attack/flood.c) was initially structed by the 
 * Together with Ioanna, wrote [factorization/math.md](factorization/math.md) to understand and make transparent the math behind the Quadratic Sieve.
 * Implemented the linear algebra for the Quadratic Sieve, in particular steps 5 and 6 in [factorization/src/qslib/base.py](factorization/src/qslib/base.py). Little to no LLM:s were used for this.
 * Put the Quadratic Sieve together and verified the execution process.
-* Optimized the Quadratic Sieve (with numpy, SageMath and parallelization) *--- LLM:s were used for this!*
-* Tried many more optimizations, including numba (njit/jit), further numpy optimizations, parallelization variants (such as multithreading without Python's GIL), and SageMath (external). *--- LLM:s were used for this!*
+* Optimized the Quadratic Sieve (with numpy, SageMath and parallelization) *LLM:s were used for this!*
+* Tried many more optimizations, including numba (njit/jit), further numpy optimizations, parallelization variants (such as multithreading without Python's GIL), and SageMath (external). *LLM:s were used for this!*
 * Refactored and deduplicated the code to make transparent everything behind our implementation of the Quadratic Sieve, see [factorization/qslib](factorization/src/qslib/).
 * Wrote an [extensive interface](factorization/src/quadratic_sieve.py) for interaction with the Quadratic Sieve and the various variants we have tried. See [factorization/readme.md](factorization/readme.md) for details.
-* Wrote interfaces to interact with the RSA modulus and prepare a private key from a public key, see [factorization/break_rsa.py](factorization/break_rsa.py). *--- LLM:s were used for this!*
+* Wrote interfaces to interact with the RSA modulus and prepare a private key from a public key, see [factorization/break_rsa.py](factorization/break_rsa.py). *LLM:s were used for this!*
 * Hunted all the bugs associated with the above.
 
 ### Venetia Ioanna Papadopoulou
