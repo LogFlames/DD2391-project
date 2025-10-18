@@ -6,7 +6,7 @@ Written with LLM assistance.
 """
 
 import argparse
-import quadratic_sieve
+from src.qslib.base import quadratic_sieve
 import re
 import base64
 from cryptography.hazmat.primitives import serialization
