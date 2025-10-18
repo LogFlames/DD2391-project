@@ -149,7 +149,7 @@ def _validate_bits(bits: int):
         print(f"Warning! {bits} bits are a lot. This computation may never complete!", file=sys.stderr)
     else:
         raise ValueError("Error: --bits must be at least 7, and not too large.")
-def main():
+def _main():
     import sys
     import argparse
     
@@ -196,17 +196,7 @@ def main():
     TIMING = False or args.timing
 
     if args.mode == "repl":
-        print("<!---")
-        print("Entering REPL mode. You can now use the quadratic sieve variants directly.\nArguments other than -v, -vv and -t are discarded.")
-        print("Available variants:")
-        for alias in aliases.keys():
-            print(f" - {alias}_QS")
-        print("The following helper functions are available to you:")
-        print(" - getComposite(bits: int)")
-        print(" - testQS(variant_func, bits: int=None, N: int=None, **kwargs)")
-        if DEBUG > 0: print(f"Default debug level set to {DEBUG}")
-        if TIMING: print(f"Timing printed by default (if available)")
-        print("--->\n")
+        _repl_print_info()
         import code
         code.interact(local=globals())
         return
@@ -255,6 +245,33 @@ def main():
         print("Error: One of --number or --bits must be specified.", file=sys.stderr)
         sys.exit(1)
 
+def _repl_print_info():
+    print("<!---")
+    print("Entering REPL mode. You can now use the quadratic sieve variants directly.\nArguments other than -v, -vv and -t are discarded.")
+    print("Available variants:")
+    for alias in aliases.keys():
+        print(f" - {alias}_QS")
+    print("The following helper functions are available to you:")
+    print(" - getComposite(bits: int)")
+    print(" - testQS(variant_func, bits: int=None, N: int=None, **kwargs)")
+    if DEBUG > 0: print(f"Default debug level set to {DEBUG}")
+    if TIMING: print(f"Timing printed by default (if available)")
+    print("--->\n")
+
 if __name__ == "__main__":
-    print("Run this file with ../run.py!")
-    sys.exit(1)
+    print("Loading in REPL mode. Run this file with ../run.py for command-line usage.\n")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="(Only compatible with some variants.) Default debug level to 1.")
+    parser.add_argument("-vv", "--very-verbose", action="store_true",
+                        help="(Only compatible with some variants.) Default debug level to 2.")
+    parser.add_argument("-t", "--timing", action="store_true",
+                        help="(Only compatible with some variants.) Enable timing by default.")
+    args, _ = parser.parse_known_args()
+    
+    DEBUG = 0 if not args.verbose and not args.very_verbose else (2 if args.very_verbose else 1)
+    TIMING = False or args.timing
+
+    _repl_print_info()
+    
