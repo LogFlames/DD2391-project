@@ -248,6 +248,9 @@ $ python3 run.py factor -N "$N"
 
 # generate 100-bit number and factor it
 $ python3 run.py factor --bits 100
+
+# generate 100-bit number and factor it, making use of 8 parallel jobs (processes)
+$ python3 run.py factor --bits 100 -J 8
 ```
 
 There are many arguments that can be passed and many more ways to run the sieve, find out more in [factorization/readme.md](factorization/readme.md).
