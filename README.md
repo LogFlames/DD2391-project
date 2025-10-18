@@ -57,7 +57,23 @@ Eskil and Ioanna
 
 ### DNS cache poisoning
 
-Elias
+The DNS cache poisoning is done by sending a DNS request for a domain and then flood the DNS server with fake responses, hoping our response reaches the server first, and is the answer that will be cached. Thus when other clients ask the server for said domain, our faulty answer with a different IP will be served. We host our man-in-the-middle proxy which forwards the traffic to the real server. Making the clients not able to easily detect that something is wrong.
+
+For a fake request to be treated as valid two things must be true:
+- The transaction ID must be the same for the answer as the query the DNS server sent 
+- It must be sent to the correct port on the DNS server
+
+There are two scenarios for this:
+- We are on the same network as the DNS server
+- We are on a different network as the DNS server
+
+If we are on the same network, we can sniff the DNS request and read both the transaction ID and the port number from the request. Construct our response and send it, since we are on the local network we have a high probabilty to be faster than the remote DNS server it is quering.
+
+If we are on a different network things become a bit more complicated. We have to guess both values. The transaction ID is a 16-bit number, and the port number is also a 16-bit number. The port number was usually a fixed port on older DNS server, but is being randomized for modern systems for security, similar to ASLR. To make the attack easier for our demonstration we set a fixed port number (see [named.conf.options:L8](https://github.com/LogFlames/DD2391-project/blob/6cbb1abdb9bbd189f7668d947fa74f0259bc636b/dns_cache_poisoning/dns_server/named.conf.options#L8)). The transaction ID is being brute-forced. Since the real server usually responds in a couple of milliseconds, the attack succedes if the transaction ID is lower (tested earlier in our attack script).
+
+Additionally, for the DNS cache poisoning to work we must disable DNSSEC. DNSSEC is a security extension formalized in 2004 (RFC3833), which add signatures to ensure only valid DNS responses are considered. There are however many DNS server today which do not use DNSSEC.
+
+There are other ways to get a MitM attack. Two prominent alternatives are ARP spoofing and DHCP spoofing, both done on local networks.
 
 ### FREAK (MitM)
 
@@ -101,7 +117,47 @@ Alexandru
 
 ### Using DNS cache poisoning
 
-Elias
+1. Setup the environment using docker compose:
+```
+cd dns_cache_poisoning
+docker compose build && docker compose up
+```
+This will start a DNS server and a client which will be used to launch the attack.
+
+2. Test the DNS server:
+The DNS server is setup to forward to port 1053 on the host.
+```
+dig @127.0.0.1 -p 1053 example.com
+```
+Ensure you get a response.
+
+3. Run the attack:
+```
+docker exec -it dns_cache_poisoning-attacker-1 bash
+cd /root
+./attempt_main.sh
+./flood.sh
+```
+
+`attempt_main.sh` will try to posion the DNS entry for `eliaslundell.se`. If it succeedes you can veriy from your host that an invalid IP address is being returned. 
+```bash
+dig @127.0.0.1 -p 1053 eliaslundell.se
+```
+
+> In case of a successfull attack it will return the ip address `192.168.128.128`, if the attack was not successfull it will return the ip found on [eliaslundell.se](https://mxtoolbox.com/SuperTool.aspx?action=a%3aeliaslundell.se&run=toolpage).
+
+However, the attack might not succeed, and then you will have to wait until the cache expires to try again.
+
+`flood.sh` will query a non existing subdomain and try to modify the cached NS record for the domain. In case the attack fails for `a.eliaslundell.se`, it will immediately try `b.eliaslundell.se` and so on.
+This way it does not have to wait for the cache to expire.
+
+#### Helpful commands on the DNS server 
+
+```bash
+docker exec -it dns_cache_poisoning-dns_server-1 bash
+rndc dumpdb # To dump the cache into /var/cache/bind/dump.db which can be viewed to verify the attack was successfull
+rndc flush # To clear the cache to attempt the main attack again quicker for testing
+```
 
 ### Using MitM
 
