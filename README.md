@@ -348,9 +348,10 @@ The [flood.c](dns_cache_poisoning/attack/flood.c) was initially structed by the 
 ### Elias Lundell
 
 * Researched man-in-the-middle attacks, choosing DNS Cache Poisoning as the main attack to explore in the project.
+* Explored different ways to perform DNS Cache Poisoning, both when on the same network and when on different networks. Explore feasability, advantages and disadvantages of each approach.
 * Setup a DNS testing environment in docker, setting up a Bind9 DNS server to be vulnerable to the attack.
-* Wrote [flood.c](dns_cache_poisoning/attack/flood.c) to generate DNS packets according to RFC1035 and flood the DNS server with guesses for transaction IDs.
-* Auotmated the attack using new subdomains, easing the attempts with new subdomains.
+* Wrote [flood.c](dns_cache_poisoning/attack/flood.c) to generate DNS packets according to RFC1035. Manually generate UDP packets to be able to spoof the source ip address to get packets accepted by the Bind9 DNS server. Flood the DNS server with packets with different Transaction IDs to get packets accepted.
+* Auotmated the use of subdomains to reattempt at changing the NS server without having to wait for the cache timeout period until reattempting.
 
 ### Eskil Nyberg
 
