@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Entry point for the quadratic sieve factorization module.
+Entry point for the quadratic sieve factorization modules.
 Run with `python run.py [args]`
 i.e. `python run.py -h` for help.
 """
