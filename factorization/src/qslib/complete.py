@@ -45,6 +45,7 @@ def parallel_sieving(N, factor_base, M,
         opcount_per_chunk = 10**9
         ops = len(factor_base)*M
         chunks = int(ops/opcount_per_chunk)
+        chunks = max(4, chunks)
         print(f"Chunks set to -1, using {chunks} chunks")
 
     if chunks < 1:
@@ -100,12 +101,12 @@ def _parallel_sieving(N, factor_base, M, chunks, jobs, variant):
         import multiprocessing.pool
 
         with multiprocessing.pool.Pool(processes=jobs) as pool:
-            results = list(tqdm.tqdm(pool.imap(sieve_worker_controller, inputs), total=len(inputs), desc="Chunk completion"))
+            results = list(tqdm.tqdm(pool.imap(sieve_worker_controller, inputs), total=len(inputs), desc="Sieving (chunks)"))
     elif variant == "multithreading":
         import concurrent.futures as futures
 
         with futures.ThreadPoolExecutor(max_workers=jobs) as executor:
-            results = list(tqdm.tqdm(executor.map(sieve_worker_controller, inputs), total=len(inputs), desc="Chunk completion"))
+            results = list(tqdm.tqdm(executor.map(sieve_worker_controller, inputs), total=len(inputs), desc="Sieving (chunks)"))
     else: raise ValueError("variant must be 'multiprocessing' or 'multithreading'")
     
     for res in results:
@@ -163,9 +164,11 @@ def find_left_nullspace_basis_vectors(A: np.ndarray) -> list[np.ndarray]:
     n_rows, n_cols = R.shape
 
     free_cols = [j for j in range(n_cols) if j not in pivot_cols]
+    if len(free_cols) == 0:
+        return []
     
     basis = []
-    for x_f in tqdm.tqdm(free_cols, desc="Basis vectors"):
+    for x_f in tqdm.tqdm(free_cols, desc="Basis vectors   "):
         vec = np.zeros(n_cols, dtype=int)
 
         vec[x_f] = 1
@@ -186,7 +189,7 @@ def rref_gf2(A: np.ndarray) -> np.ndarray:
 
     pivot_row = 0
     pivot_cols = [-1] * n_rows
-    for j in tqdm.tqdm(range(n_cols), desc="RREF"):
+    for j in tqdm.tqdm(range(n_cols), desc="RREF            "):
         for i in range(pivot_row, n_rows):
             if A[i, j] == 1: break
         else: continue
@@ -223,13 +226,19 @@ def print_timing(verbosity: Literal[0, 1, 2]=0):
         if verbosity < 2 and ("debug" in s or s == "init"):
             continue
         if verbosity == 0:
-            if s != "3" and s != "5": continue
-            print(f"{"Sieving" if s == 3 else "Linalg"}: {t-prev_t:.3f} s")
+            if (s != "3" and s != "5") and (t-prev_t) < 1: continue
+            if s == "1": desc   = "Prep.           "
+            elif s == "2": desc = "Factor base gen."
+            elif s == "3": desc = "Sieving         "
+            elif s == "4": desc = "Collection      "
+            elif s == "5": desc = "Linear algebra  "
+            elif s == "6": desc = "Subset testing  "
+            print(f"{desc}: {t-prev_t:.3f} s")
         else:
             print(f"{s}: {t-prev_t:.3f} s, total: {t - init_t:.3f} s")
         
         prev_t = t
-    if verbosity == 0: print(f"Total time taken: {t - init_t:.3f} s")
+    if verbosity == 0: print(f"Total time taken: {t - init_t:.3f} s\n(excluding retries)")
     print()
 
 def quadratic_sieve(
@@ -297,7 +306,7 @@ def quadratic_sieve(
 
     ### 4 ###
     if one_large_prime:
-        relations = olp.filter_and_find_exponents_olp(B, probable_smooth, factor_base)
+        relations, factor_base = olp.filter_and_find_exponents_olp(N, B, probable_smooth, factor_base, debug=debug)
     else:
         relations = base.filter_and_find_exponents(probable_smooth, factor_base)
 
@@ -314,7 +323,7 @@ def quadratic_sieve(
     ### 5 ###
     A = np.array([exponents for _, exponents in relations], dtype=int)
     A = (A % 2).astype(bool)
-    nullspace_basis_vectors = base.find_left_nullspace_basis_vectors(A)
+    nullspace_basis_vectors = find_left_nullspace_basis_vectors(A)
 
     if timing: perf_time_array.append(("5", time.perf_counter()))
     if debug > 0:
@@ -356,6 +365,7 @@ def quadratic_sieve(
                 retries=retries-1,
                 retry_factor=retry_factor,
                 multivariant=multivariant,
+                one_large_prime=one_large_prime,
                 debug=debug,
                 timing=timing
                 )

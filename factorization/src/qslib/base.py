@@ -19,7 +19,8 @@ def select_parameters(N: int, B: int|Literal["auto"]="auto") -> tuple[int, int]:
     # B controls the size of the factor base.
     if B == "auto":
         B = math.exp(0.5 * math.sqrt(math.log(N) * math.log(math.log(N))))
-        if B < 1000: B *= 1.5   # formula isn't perfect for small N
+        if B < 1000: B *= 2; B = min(B, 1000)     # formula isn't perfect for small N
+
         B = max(B, 100)         # minimum B for small N
     elif type(B) == str:
         raise ValueError("B must be an integer or 'auto'")

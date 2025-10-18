@@ -13,8 +13,9 @@ the same large prime. That way we produce more full relations.
 ######################################################
 
 from sympy import isprime
+from src.qslib.base import euler_criterion
 
-def filter_and_find_exponents_olp(B, probable_smooth, factor_base, prime_bound: int=None):
+def filter_and_find_exponents_olp(N, B, probable_smooth, factor_base, prime_bound: int=None, debug=0):
     """
     Implements the 1-large-prime variant of the Quadratic Sieve algorithm.
 
@@ -35,7 +36,8 @@ def filter_and_find_exponents_olp(B, probable_smooth, factor_base, prime_bound: 
     :param prime_bound: Upper bound for the large prime in partial relations, default is 10*B.
     :return: (full_relations, partial_relations)
     """
-    if not prime_bound: prime_bound = 10*B
+
+    if not prime_bound: prime_bound = 8*B
     full_relations = []
     partial_relations = []
 
@@ -54,14 +56,68 @@ def filter_and_find_exponents_olp(B, probable_smooth, factor_base, prime_bound: 
                 exponents += [0] * (len(factor_base) - len(exponents))
                 full_relations.append((x, exponents))
                 break
-            elif (value < prime_bound) and isprime(value):
+            elif (B < value < prime_bound) and isprime(value):
+                exponents += [0] * (len(factor_base) - len(exponents))
                 partial_relations.append((x, exponents, value))
+                break
+            
+    relations, new_factor_base = _combine_relations(N, full_relations, partial_relations, factor_base, debug=debug)
+    return relations, new_factor_base
 
-    relations = full_relations + _combine_relations(partial_relations, B)
+def _combine_relations(N, full_relations, partial_relations, factor_base, debug):
+    """
+    Updates the factor base and combines partial relations into full relations.
 
-    return relations
+    :param partial_relations: List of (x, [exponents], large_prime) tuples.
+    :param N: The integer being factored.
+    :return: List of full relations (x, [exponents]).
+    """
+    new_primes = set()
+    combinations ={}    # partials by prime
 
-def _combine_relations(partial_relations, N):
+    if debug > 0:
+        print(f"Number of partial relations found: {len(partial_relations)}")
+
+    for x1, exponents1, prime in partial_relations:
+        if not combinations.get(prime):
+            combinations[prime] = []
+        combinations[prime].append((x1, exponents1))
+        if len(combinations[prime]) > 1:
+            new_primes.add(prime)
+
+    new_primes = list(new_primes)
+    new_primes.sort()
+    # append to factor base
+    factor_base = [int(p) for p in factor_base]
+    factor_base = factor_base + new_primes
+
+    full_relations_corrected = []
+    # correct previous relations
+    for x, exp in full_relations:
+        exp = exp + [0]*len(new_primes)
+        full_relations_corrected.append((x, exp))
+
+    full_relations2 = []
+    # build usable relations from partials
+    for prime, partials in combinations.items():
+        if len(partials) < 2:
+            continue
+        if euler_criterion(N, prime) != 1:
+            continue
+        exp = None
+        while len(partials) > 0:
+            x, exp = partials.pop()
+            exp += [0]*len(new_primes)
+            exp[factor_base.index(prime)] = 1
+            full_relations2.append((x, exp))
+
+    if debug > 0:
+        print(f"Number of usable relations from partials: {len(full_relations2)}")
+
+    relations = full_relations_corrected + full_relations2
+    return relations, factor_base
+
+def _combine_relations_old(partial_relations, debug):
     """
     Combines partial relations (into pairs) that share the same large prime number
     and turns them into full relations.
@@ -74,7 +130,10 @@ def _combine_relations(partial_relations, N):
     :return: List of full relations (x, [exponents]).
     """
     full_relations = []
-    combinations ={}    # partials by prime
+    combinations = {}    # partials by prime
+
+    if debug > 0:
+        print(f"Number of partial relations found: {len(partial_relations)}")
 
     for x1, exponents1, prime in partial_relations:
         if not combinations.get(prime):
@@ -82,13 +141,14 @@ def _combine_relations(partial_relations, N):
         combinations[prime].append((x1, exponents1))
 
     for prime, partials in combinations.items():
-        while len(partials) > 1:
+        if len(partials) > 2:
             x1, exponents1 = partials.pop()
-            for x2, exponents2 in partials:
-                x = (x1 * x2) % N
-                exponents = [(e1 + e2) for e1, e2 in zip(exponents1, exponents2)]
-                full_relations.append((x, exponents))
-            
+            x2, exponents2 = partials.pop()
+            full_relations.append((x1 * x2, [(e1 + e2) for e1, e2 in zip(exponents1, exponents2)]))
+    
+    if debug > 0:
+        print(f"Number of full relations combined from partials: {len(full_relations)}")
+
     return full_relations
 
 #################################
@@ -115,7 +175,7 @@ def quadratic_sieve(N: int, B: int|Literal["auto"]="auto", chunks: int=4, jobs: 
     print(f"\nB = {int(B)}\n")
     factor_base = base.build_factor_base(N, B)
     probable_smooth = parallel_np_sieving.parallel_sieving(N, factor_base, M, chunks, jobs, multivariant)
-    relations = filter_and_find_exponents_olp(B, probable_smooth, factor_base)
+    relations, factor_base = filter_and_find_exponents_olp(N, B, probable_smooth, factor_base)
     nullspace_basis_vectors = base.find_sets_of_squares(relations)
     factor = base.test_found_subsets(N, factor_base, relations, nullspace_basis_vectors)
 

@@ -120,8 +120,12 @@ def testQS(variant_func,
         kwargs.setdefault("debug", debug)
         kwargs.setdefault("timing", timing)
     
-    factor, module = variant_func(N, __internal=True, **kwargs)
-    if timing and module.__name__ == "complete":
+    try:
+        factor, module = variant_func(N, __internal=True, **kwargs)
+    except ValueError:
+        print("Factorization failed! Try increasing B.")
+        return
+    if timing and module.__name__ == "src.qslib.complete":
         module.print_timing()
     print(f"Returned factor: {factor}")
     assert N % factor == 0 and factor != 1 and factor != N
@@ -229,13 +233,13 @@ def main():
             kwargs["B"] = args.B_parameter
         if args.chunks:
             kwargs["chunks"] = args.chunks
-        if args.jobs:
+        if args.jobs and ("-J" in sys.argv or "--jobs" in sys.argv):
             kwargs["jobs"] = args.jobs
-        if args.retries:
+        if args.retries and ("-R" in sys.argv or "--retries" in sys.argv):
             kwargs["retries"] = args.retries
-        if args.retry_factor:
+        if args.retry_factor and ("-R" in sys.argv or "--retries" in sys.argv):
             kwargs["retry_factor"] = args.retry_factor
-        if args.parallelization_variant:
+        if args.parallelization_variant and ("-PV" in sys.argv or "--parallelization-variant" in sys.argv):
             kwargs["multivariant"] = args.parallelization_variant
         if args.one_large_prime:
             kwargs["one_large_prime"] = True

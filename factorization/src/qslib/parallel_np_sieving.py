@@ -142,7 +142,7 @@ def _sieve_worker(N, sqrt_N, factor_base, factor_base_roots, M, start, end):
 import src.qslib.base as base
 from typing import Literal
 
-def quadratic_sieve(N: int, B: int|Literal["auto"]="auto", chunks: int=4, jobs: int=4, variant: Literal["multiprocessing", "multithreading"]="multiprocessing") -> int:
+def quadratic_sieve(N: int, B: int|Literal["auto"]="auto", chunks: int=4, jobs: int=4, multivariant: Literal["multiprocessing", "multithreading"]="multiprocessing") -> int:
     """
     Like base.quadratic_sieve, but with numpy accelerated sieving and enabled for parallel sieving.
     
@@ -150,14 +150,14 @@ def quadratic_sieve(N: int, B: int|Literal["auto"]="auto", chunks: int=4, jobs: 
     :param B: The bound for the factor base (or "auto" to compute automatically).
     :param chunks: The number of chunks to divide the work into.
     :param jobs: The number of parallel jobs to run.
-    :param variant: "multiprocessing" or "multithreading" to choose parallelization method.
+    :param multivariant: "multiprocessing" or "multithreading" to choose parallelization method.
     WARNING: Multithreading is GIL-bound and will not yield speedup. Even with GIL disabled on a freethreaded version of Python, speed-up is not achieved (except maybe for quite small numbers).
     :return: A nontrivial factor of N, or raises ValueError if no factor is found.
     """
     B, M = base.select_parameters(N, B)
     print(f"\nB = {int(B)}\n")
     factor_base = base.build_factor_base(N, B)
-    probable_smooth = parallel_sieving(N, factor_base, M, chunks, jobs, variant)
+    probable_smooth = parallel_sieving(N, factor_base, M, chunks, jobs, multivariant)
     relations = base.filter_and_find_exponents(probable_smooth, factor_base)
     nullspace_basis_vectors = base.find_sets_of_squares(relations)
     factor = base.test_found_subsets(N, factor_base, relations, nullspace_basis_vectors)
