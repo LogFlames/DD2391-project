@@ -98,9 +98,9 @@ Q(x) = p_1 * p_2 * p_3 * ... \Rightarrow \ln(Q(x)) = \ln(p_1) + \ln(p_2) + \ln(p
 $$
 
 With that in mind, we calculate $\ln(Q(x))$ for every $Q(x)$. Each time a prime $p$ divides one of those $Q(x)$, we subtract $\ln(p)$ from the corresponding $\ln(Q(x))$ - if $p^k$ $Q(x)$, we subtract $k * \ln(Q(x))$. If $Q(x)$ factors completely over the factor base, the value of $\ln(Q(x))$ will be theoretically reduced to $0$.
-After we process all the primes from the factor base, the $x$'s whose corresponding $\ln(Q(x))$ values have been reduced to $0$ (or close to $0$) are the ones that are smooth - or almost smooth. These $x$ values are the ones we are interested in.
+After we process all the primes from the factor base, the $Q(x)$'s whose corresponding $\ln(Q(x))$ values have been reduced to $0$ (or close to $0$) are the ones that are smooth - or almost smooth. These values are the ones we are interested in.
 
-After we find our pairs of $(x, Q(x))$ where $x$ is a probable $B$-smooth number, we use trial division to find exactly which prime numbers $p$ from the factor base divide $Q(x)$ and put each prime's exponent in its corresponding place in a vector.
+After we find our pairs of $(x, Q(x))$ where $Q(x)$ is a probable $B$-smooth number, we use trial division to find exactly which prime numbers $p$ from the factor base divide $Q(x)$ and put each prime's exponent in its corresponding place in a vector.
 
 For example, if the factor base contains 10 prime numbers $p_1, p_2, ..., p_{10}$ and $Q(x_i) = p_2 * p_6 * p_7^2 * p_9$ for some $x_i$, then $x_i$'s vector will be:
 $$[0, 1, 0, 0, 0, 1, 2, 0, 1, 0]$$
