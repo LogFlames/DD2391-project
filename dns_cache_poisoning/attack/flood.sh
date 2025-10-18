@@ -1,7 +1,7 @@
 #!/bin/bash
 
 generate_columns_while() {
-    local max_length=${1:-2}  # Maximum length of strings
+    local max_length=${1:-2}
     local queue=({a..z})
 
     while ((${#queue[@]})); do
@@ -14,7 +14,6 @@ generate_columns_while() {
         /root/flood 9.9.9.9 53 172.18.0.2 33333 $current.eliaslundell.se ${#with_dot} 1
         read -p "Press enter to continue"
 
-        # If length allows, append next level combinations
         if (( ${#current} < max_length )); then
             for c in {a..z}; do
                 queue+=("$current$c")
@@ -23,5 +22,4 @@ generate_columns_while() {
     done
 }
 
-# Usage: generate columns up to length 2
 generate_columns_while 3
