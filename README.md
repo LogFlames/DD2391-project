@@ -153,9 +153,7 @@ The **One-Large-Prime (1LP) variant** is an optimization of the basic QS algorit
 These partial relations are stored and temporarily and latered combined into pairs that share the same large prime. When two partial relations are multiplied together, the large prime acquires an even exponent that cancels out $\pmod{2}$, thus producing a full relation.
 This way, the number of usable relations is increased without great computational increase.
 
-Lastly, there is the **Multi-Polynomial Quadratic Sieve (QLP)** which ...
-<!--- TODO
---->
+Lastly, there is the **Multi-Polynomial Quadratic Sieve (QLP)** which replaces $Q(x)=(x+sqrt(N))^2-N$ with several polynomials on the form $(ax+b)^2-N$, where $a,b$ are chosen to keep the numbers smaller. This variant is not implemented by us.
 
 #### More details on the maths behind the Quadratic Sieve is available in [math.md](math.md).
 

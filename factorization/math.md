@@ -102,15 +102,8 @@ After we process all the primes from the factor base, the $Q(x)$'s whose corresp
 
 After we find our pairs of $(x, Q(x))$ where $Q(x)$ is a probable $B$-smooth number, we use trial division to find exactly which prime numbers $p$ from the factor base divide $Q(x)$ and put each prime's exponent in its corresponding place in a vector.
 
-For example, if the factor base contains 10 prime numbers $p_1, p_2, ..., p_{10}$ and $Q(x_i) = p_2 * p_6 * p_7^2 * p_9$ for some $x_i$, then $x_i$'s vector will be:
+> For example, if the factor base contains 10 prime numbers $p_1, p_2, ..., p_{10}$ and $Q(x_i) = p_2 * p_6 * p_7^2 * p_9$ for some $x_i$, then $x_i$'s vector will be:
 $$[0, 1, 0, 0, 0, 1, 2, 0, 1, 0]$$
-
-
-<!---
-TODO: Optimizations (3.2)
-
-It is very inefficient to test each $Q(x)$ for divisibility by each prime $p$ one at a time. Instead, we will sieve the entire interval at once by noting that if $p|Q(x)$, then $p|Q(x+p)$. Equivalently, 
---->
 
 ### Building the matrix
 
@@ -137,9 +130,11 @@ So, finally, we test whether the subsets yield a factor of $n$ with GCD. For RSA
 
 ## QS optimizations
 
-### Sieving optimizations
+### Parallelization
 
-### One-Large-Prime Variant of the Quadratic Sieve
+We can easily parallelize the computations by dividing the sieving interval into smaller pieces and sieving in several parts, using several processes, possible on several computers. This also keeps the temporary data manageable.
+
+### One-Large-Prime
 
 The One-Large-Prime (1LP) variant is an optimization of the basic Quadratic Sieve (QS) algorithm that increases the number of relations without greatly increasing the computation time needed.
 
@@ -151,7 +146,9 @@ When we multiply the two $Q(x)$ values: $$ Q(x_1) * Q(x_2) = (x^1_2âˆ’N)(x^2_2âˆ
 
 In short, two partial relations with the same large prime can be combined into one full relation.
 
-### Parallelization
+### Multiple-Polynomial Quadratic Sieve
+
+There is also the **Multi-Polynomial Quadratic Sieve (QLP)** which replaces $Q(x)=(x+sqrt(N))^2-N$ with several polynomials on the form $(ax+b)^2-N$, where $a,b$ are chosen to keep the numbers smaller. This variant is not implemented by us.
 
 ## Author's notes
 
