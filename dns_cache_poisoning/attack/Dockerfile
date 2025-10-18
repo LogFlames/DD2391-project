@@ -10,7 +10,7 @@ RUN gcc /root/flood.c -o /root/flood
 COPY ./flood.sh /root/flood.sh
 RUN chmod +x /root/flood.sh
 
-COPY ./attempt_main.sh.sh /root/attempt_main.sh
+COPY ./attempt_main.sh /root/attempt_main.sh
 RUN chmod +x /root/attempt_main.sh
 
 CMD ["sleep", "100000"]
