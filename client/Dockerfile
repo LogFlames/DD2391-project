@@ -27,4 +27,5 @@ RUN printf '%s\n' "#!/bin/sh" \
 	chmod +x /usr/local/bin/start_client.sh
 RUN ["/usr/local/bin/start_client.sh"]
 
-CMD openssl version; sleep 5; openssl s_client -connect mitm:8443 -tls1 -no_comp; sleep 15; openssl s_client -connect mitm:8443 -tls1 -no_comp
+# leave it running to allow manual testing
+CMD openssl version; sleep 5; openssl s_client -connect mitm:8443 -tls1 -no_comp; while true; do sleep 1000; done

