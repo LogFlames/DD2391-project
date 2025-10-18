@@ -263,7 +263,7 @@ Note that the Quadratic Sieve should only be used for small enough numbers. It i
 
 Our implementation is reasonable for numbers with less than 150 bits, and fast for numbers with less than 120 bits. An estimated running time can be achieved by running the algorithm against an input (use the number of chunks, $-1$). This may still crash with large enough inputs!
 
-For example, on our computer (8 cores, ~4 GHz, 16 G):
+For example, on our computer (8 cores, ~4 GHz, 16 GB RAM):
 
 * 200 bits takes 5 hours.
 * 220 bits takes 75 hours.
