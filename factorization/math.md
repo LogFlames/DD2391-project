@@ -103,7 +103,8 @@ After we process all the primes from the factor base, the $Q(x)$'s whose corresp
 After we find our pairs of $(x, Q(x))$ where $Q(x)$ is a probable $B$-smooth number, we use trial division to find exactly which prime numbers $p$ from the factor base divide $Q(x)$ and put each prime's exponent in its corresponding place in a vector.
 
 > For example, if the factor base contains 10 prime numbers $p_1, p_2, ..., p_{10}$ and $Q(x_i) = p_2 * p_6 * p_7^2 * p_9$ for some $x_i$, then $x_i$'s vector will be:
-$$[0, 1, 0, 0, 0, 1, 2, 0, 1, 0]$$
+> 
+> $$[0, 1, 0, 0, 0, 1, 2, 0, 1, 0]$$
 
 ### Building the matrix
 
@@ -149,6 +150,11 @@ In short, two partial relations with the same large prime can be combined into o
 ### Multiple-Polynomial Quadratic Sieve
 
 There is also the **Multi-Polynomial Quadratic Sieve (QLP)** which replaces $Q(x)=(x+sqrt(N))^2-N$ with several polynomials on the form $(ax+b)^2-N$, where $a,b$ are chosen to keep the numbers smaller. This variant is not implemented by us.
+
+### Additional optimizations
+
+* Obviously, not writing it in Python. Also using faster libraries for arithmetic such as C:s GMP.
+* The linear algebra can be optimized for sparse matrices (which is the case, especially for larger inputs). See Block Lanczos. A part of its computation can be parallelized, but not the entire computation.
 
 ## Author's notes
 
