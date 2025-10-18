@@ -149,7 +149,7 @@ options:
 
 ### Super advanced usage
 
-It is possible to use `multithreading` instead of `multiprocessing`, however Python's global interpreter lock (GIL) will cause this parallelization method to grant virtually no speed-up. It is possible to install a Python with this disabled, called "free-threaded Python", however this still does not lead to a speed-up when compared to the multiprocessing implementation. The only real use-case is to implement a more current process bar than the one across chunks, or another form of inter-thread communication.
+It is possible to use `multithreading` instead of `multiprocessing`, however Python's global interpreter lock (GIL) will cause this parallelization method to grant virtually no speed-up. It is possible to install a Python interpreter with this disabled, called "free-threaded Python", however this still does not lead to a speed-up when compared to the multiprocessing implementation. The only real use-case is to implement a more current process bar than the one across chunks, or another form of inter-thread communication. Seriously, it's a bad idea to use this.
 
 The below installation commands work only for Linux and require `pyenv` to be installed.
 
