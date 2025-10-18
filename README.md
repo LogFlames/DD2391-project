@@ -309,10 +309,12 @@ TODO
 
 ### Alexandru Carp
 
-- Researched OpenSSL versions vulnerable to FREAK and set up the client and server accordingly.
-- Implemented a python MitM proxy that parses and modifies TLS handshake messages to perform the FREAK downgrade attack.
-- Implemented the RSA decryption of the premaster secret using the factored private key, and the derivation of the master secret and session keys.
-- Implemented the decryption, modification, and re-encryption of the Finished messages to avoid detection of the tampering and successfully complete the handshake.
+- Researched OpenSSL versions vulnerable to FREAK and set up the client and server accordingly. Used OpenSSL 1.0.1f shipped with Ubuntu 14.04, which should have been vulnerable but later found out it was backported by ubuntu. Built it from source to ensure it was vulnerable.
+- Implemented a python MitM proxy that parses and modifies TLS handshake messages to perform the FREAK downgrade attack. Used the `scapy` library to parse and manipulate handshake messages, but also implemented custom parsing logic, using wireshark to understand the structure of the messages.
+- When I faced the problem of invalid Finished messages causing the handshake to abort, I tried to use SSLv2 and tried to implement a parser for it because it does not use finished hashes, but abandoned this approach when I found out that OpenSSL servers reuse the temporary RSA export keys, which made the attack feasible by also modifying the Finished messages.
+- Modified the OpenSSL server code to dump the temporary RSA export key used in the handshake to a file, so that it simulates factoring it, which allows continuing the attack.
+- Implemented the RSA decryption of the premaster secret using the factored private key, and the derivation of the master secret and session keys using PRF as specified in TLS 1.0. This part was tricky because of the different key derivation rules for export cipher suites.
+- Implemented the decryption, modification, and re-encryption of the Finished messages to avoid detection of the tampering and successfully complete the handshake. Implementing the re-encryption was particularly challenging, because it also required MAC computation and padding, which were not as relevant for the decryption. The decryption should also work for other messages, as IV changing is implemented, but the encryption only works for the first encrypted message, which is the Finished message, because for the next ones the sequencing is not implemented and MAC verification would fail. That would not be hard to implement though, and would allow tampering any application data messages as well. However, the rest of the application data messages can also be easily decrypted using Wireshark, given the premaster secret.
 
 ### Elias Lundell
 
