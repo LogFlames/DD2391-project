@@ -351,18 +351,15 @@ Factorization / Quadratic Sieve:
 * https://maxwellmlin.com/assets/pdf/sieve-2024.pdf
 * https://people.maths.ox.ac.uk/mavroyiakoum/QsievePoster.pdf
 * https://gwern.net/doc/cs/cryptography/1996-pomerance.pdf
+* https://www.csc.kth.se/~joel/qs.pdf
+* https://ir.cwi.nl/pub/1367/1367D.pdf
 * https://ritter.vg/misc/stuff/gnfs-beginners-guide.pdf
+* https://personal.math.vt.edu/brown/doc/briggs_gnfs_thesis.pdf
 
 TLSv1.0 protocol:
 * https://www.ietf.org/rfc/rfc2246.txt
 * https://wiki.osdev.org/TLS_Handshake#Server_Key_Exchange_Message
 * https://scapy.readthedocs.io/en/latest/api/scapy.layers.tls.handshake.html
-
-
-<!---TODO
-Add references for Quadratic Sieve
-Add references for GNFS
---->
 
 ## DD2391 Project Final 18
 
