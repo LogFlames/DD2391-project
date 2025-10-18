@@ -35,20 +35,6 @@
 
 Broad introduction
 
-Information on FREAK:
-- https://nvd.nist.gov/vuln/detail/CVE-2015-0204 (OpenSSL)
-- https://nvd.nist.gov/vuln/detail/CVE-2015-1637 (Schannel)
-- https://nvd.nist.gov/vuln/detail/CVE-2015-1067 (Secure Transport)
-- https://www.cisa.gov/news-events/alerts/2015/03/06/freak-ssltls-vulnerability
-- https://en.wikipedia.org/wiki/FREAK
-- https://access.redhat.com/articles/1369543
-- https://freakattack.com/
-
-Previous practical demonstration:
-
-- https://github.com/eniac/faas/tree/master
-- https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
-
 ## Technical documentation
 
 ### About RSA
@@ -263,11 +249,32 @@ TODO!!!
 ```
 Note that the Quadratic Sieve should only be used for small enough numbers. It is the fastest for numbers with less than 100 digits (330 bits) but that doesn't mean it is fast with such numbers: that would require parallelization across computers and more efficient code than we have written, and preferably not Python code.
 
-Our implementation is reasonable for numbers with less than 150 bits, and fast for numbers with less than 120 bits. An estimated running time can be achieved by running the algorithm against an input (use the number of chunks, $-1$).
+Our implementation is reasonable for numbers with less than 150 bits, and fast for numbers with less than 120 bits. An estimated running time can be achieved by running the algorithm against an input (use the number of chunks, $-1$). This may still crash with large enough inputs!
+
+For example, on our computer (8 cores, ~4 GHz, 16 G):
+
+* 200 bits takes 5 hours on 8 cores running at around 4 GHz.
+* 250 bits crashes.
 
 ## Mitigation/Defense against the attack
 
 Todo
+
+## References
+
+Information on FREAK:
+- https://nvd.nist.gov/vuln/detail/CVE-2015-0204 (OpenSSL)
+- https://nvd.nist.gov/vuln/detail/CVE-2015-1637 (Schannel)
+- https://nvd.nist.gov/vuln/detail/CVE-2015-1067 (Secure Transport)
+- https://www.cisa.gov/news-events/alerts/2015/03/06/freak-ssltls-vulnerability
+- https://en.wikipedia.org/wiki/FREAK
+- https://access.redhat.com/articles/1369543
+- https://freakattack.com/
+
+Previous practical demonstration:
+
+- https://github.com/eniac/faas/tree/master
+- https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
 
 ## DD2391 Project Final 18
 
