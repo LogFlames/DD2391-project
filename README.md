@@ -32,6 +32,24 @@
 2. [**Contribution documentation**](#contribution-documentation)
 3. [**Presentation material**](#presentation-material)
 
+## Directory structure
+
+Note: as per request, this README.md contains all details on the project necessary for the report. Other READMEs and files contain auxiliary or unnecessary information.
+
+Overview:
+* [client/](client/) - installation files for the client
+* [server/](server/) - installation files for the server
+* [dns_cache_poisoning/](dns_cache_poisoning/)
+  * [dns_cache_poisoning/README.md](dns_cache_poisoning/README.md) - heavy details on the DNS cache poisoning and how to use it.
+  * ...
+* [mitm/](mitm/) - files for the MitM attack
+* [factorization/](factorization/)
+  * [readme.md](factorization/readme.md) - heavy details on the Quadratic Sieve and how to use it. Detailed comparisons to the GNFS.
+  * [math.md](factorization/math.md) - heavy details on the math behind the Quadratic Sieve and its implementation
+  * ...
+* [infrastructure.md](infrastructure.md) - Details on the interworkings and infrastructure that the DNS cache poisoning and MitM uses.
+* [README.md](README.md) - This file, and the project report.
+
 ## Project summary
 
 Project summary: Eskil
