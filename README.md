@@ -345,7 +345,8 @@ DNS Cache Poisoning:
 
 Factorization / Quadratic Sieve:
 
-* https://math.dartmouth.edu/~carlp/PDF/qs08.pdf https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
+* https://math.dartmouth.edu/~carlp/PDF/qs08.pdf
+* https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadratic.sieve.pdf
 * https://markyangliu.github.io/papers/sieve.pdf
 * https://maxwellmlin.com/assets/pdf/sieve-2024.pdf
 * https://people.maths.ox.ac.uk/mavroyiakoum/QsievePoster.pdf
