@@ -38,7 +38,7 @@ This is a project perfomed as part of the DD2391 Cybersecurity Overview course a
 * Setup and explore ways to perform man-in-the-middle attacks to proxy a server. Implement a proof-of-concept for DNS Cache Poisoning.
 * Research, explore and successfully abuse a bug in SSL 1.0.1f to make the key negotiation use an RSA export key (of limited size due to USA encryption export restrictions)
 * Explore fast prime factorization methods, implement algorithms to perform factorization of large primes. Implementing an interface to work on RSA keys and get the private key from the public key.
-* Use the private key to finish the handshake and listen to all subsequent encrypted traffic.
+* Use the private key to finish the handshake using the smaller RSA key, making the proxy's interference in the key negotiation invisible to the server and client, and listen to all subsequent encrypted traffic.
 
 ## Technical documentation
 
