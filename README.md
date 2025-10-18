@@ -289,6 +289,14 @@ Previous practical demonstration:
 - https://github.com/eniac/faas/tree/master
 - https://fc16.ifca.ai/preproceedings/19_Valenta.pdf
 
+DNS Cache Poisoning:
+- https://www.cloudflare.com/learning/dns/dns-cache-poisoning/
+- https://seedsecuritylabs.org/Labs_16.04/PDF/DNS_Remote.pdf
+- https://www.utc.edu/sites/default/files/2021-04/dns.pdf
+- https://datatracker.ietf.org/doc/html/rfc1035
+- https://gieseanw.wordpress.com/2010/03/25/building-a-dns-resolver/
+- https://gist.github.com/leonid-ed/909a883c114eb58ed49f
+
 ## DD2391 Project Final 18
 
 By: Alexandru Carp, Elias Lundell, Eskil Nyberg, Venetia Ioanna Papadopoulou
