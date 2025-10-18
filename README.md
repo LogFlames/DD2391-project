@@ -125,9 +125,17 @@ Once the relations have been gathered, we build an $R \times B$ matrix, where $B
 
 We are looking for a subset of rows such that the sum of each exponent is congruent to $0 \pmod{2}$. This will ensure that the product of the corresponding $Q(x)$ values forms a perfect square, yielding a factorization of $N$.
 
+##### Optimizing the Quadratic Sieve
+
+An obvious optimization is **parallelization**. To parallelize, we split the sieving interval into many small chunks and send out the sieving tasks to several workers - which can live on different computers. This splitting also makes sieving large intervals manageable on single computers, and not all chunks have to be done concurrently.
+
 The **One-Large-Prime (1LP) variant** is an optimization of the basic QS algorithm. In the basic QS, only values $Q(x)$ that are completely $B$-smooth (_full_ relations) are accepted, whereas the 1LP variant also accepts _partial_ relations – $Q(x)$ values that factor over the factor base except for one extra “large” prime slightly above the bound $B$.
 These partial relations are stored and temporarily and latered combined into pairs that share the same large prime. When two partial relations are multiplied together, the large prime acquires an even exponent that cancels out $\pmod{2}$, thus producing a full relation.
 This way, the number of usable relations is increased without great computational increase.
+
+Lastly, there is the **Multi-Polynomial Quadratic Sieve (QLP)** which ...
+<!--- TODO
+--->
 
 #### More details on the maths behind the Quadratic Sieve is available in [math.md](math.md).
 
