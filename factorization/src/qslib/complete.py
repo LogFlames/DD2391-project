@@ -248,7 +248,7 @@ def quadratic_sieve(
         jobs: int=min(4, cpu_count()),
         retries: int=0,
         retry_factor: float=1.2,
-        multivariant: Literal["multiprocessing", "multithreading"]="multithreading",
+        multivariant: Literal["multiprocessing", "multithreading"]="multiprocessing",
         debug: int=0,
         timing: bool=False,
         one_large_prime: bool=False
