@@ -77,14 +77,18 @@ def _combine_relations(partial_relations, N):
     combinations ={}    # partials by prime
 
     for x1, exponents1, prime in partial_relations:
-        if prime in combinations:
-            x2, exponents2, prime = combinations.pop(prime)
-            x = (x1 * x2) % N
-            exponents = [(e1 + e2) for e1, e2 in zip(exponents1, exponents2)]
-            full_relations.append((x, exponents))
-        else:
-            combinations[prime] = (x1, exponents1, prime)
+        if not combinations.get(prime):
+            combinations[prime] = []
+        combinations[prime].append((x1, exponents1))
 
+    for prime, partials in combinations.items():
+        while len(partials) > 1:
+            x1, exponents1 = partials.pop()
+            for x2, exponents2 in partials:
+                x = (x1 * x2) % N
+                exponents = [(e1 + e2) for e1, e2 in zip(exponents1, exponents2)]
+                full_relations.append((x, exponents))
+            
     return full_relations
 
 #################################
