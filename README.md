@@ -31,15 +31,23 @@
 2. [**Contribution documentation**](#contribution-documentation)
 3. [**Presentation material**](#presentation-material)
 
-## About FREAK
+## Project summary
 
-Broad introduction
+Project summary: Eskil
+
+<!---TODO
+--->
 
 ## Technical documentation
+
+Following is technical and theoretical background regarding the attack and the technologies involved. It serves as a guide for how we have implemented the attack and relevant considerations.
 
 ### About RSA
 
 Eskil and Ioanna
+
+<!---TODO
+--->
 
 ### DNS cache poisoning
 
@@ -253,12 +261,16 @@ Our implementation is reasonable for numbers with less than 150 bits, and fast f
 
 For example, on our computer (8 cores, ~4 GHz, 16 G):
 
-* 200 bits takes 5 hours on 8 cores running at around 4 GHz.
+* 200 bits takes 5 hours.
+* 220 bits takes 75 hours.
 * 250 bits crashes.
 
 ## Mitigation/Defense against the attack
 
 Todo
+
+<!---TODO
+--->
 
 ## References
 
@@ -284,7 +296,14 @@ By: Alexandru Carp, Elias Lundell, Eskil Nyberg, Venetia Ioanna Papadopoulou
 
 ## The usage of LLM:s, AI and borrowed code
 
+For this project, LLM:s have been used to understand theory, and write, improve, comment, and optimize code for the various parts of the project. No code has been borrowed for this project, and AI hasn't been otherwise used.
+
+In particular, the basic quadratic sieve was written with little-to-no input from AI, i.e. the one in [factorization/src/qslib/base.py](factorization/src/qslib/base.py). Other iterations used LLM:s extensively for optimizations and so forth.
+
 TODO
+
+<!---TODO
+--->
 
 ## Contribution documentation
 
@@ -298,6 +317,9 @@ TODO
 ### Elias Lundell
 
 TODO
+
+<!---TODO
+--->
 
 ### Eskil Nyberg
 
@@ -315,6 +337,9 @@ TODO
 ### Venetia Ioanna Papadopoulou
 
 TODO
+
+<!---TODO
+--->
 
 ## Presentation material
 
