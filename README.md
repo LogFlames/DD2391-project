@@ -48,7 +48,7 @@ Overview:
   * [math.md](factorization/math.md) - heavy details on the math behind the Quadratic Sieve and its implementation
   * ...
 * [infrastructure.md](infrastructure.md) - Details on the interworkings and infrastructure that the DNS cache poisoning and MitM uses.
-* [README.md](README.md) - This file, and the project report.
+* [README.md](README.md) - This file, the project report.
 
 ## Project summary
 
