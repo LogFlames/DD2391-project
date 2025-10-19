@@ -137,9 +137,15 @@ Now we will go over (in broad terms) the maths behind the Quadratic Sieve.
 
 #### The Quadratic Sieve
 
-Given a number $N$ that we want to factor, the **Quadratic Sieve (QS) algorithm** aims to find numbers $x, y$ such that: $$ x^2 \equiv y^2 \pmod{N} \text{ and } x \not\equiv\pm  y \pmod{N} $$
+Given a number $N$ that we want to factor, the **Quadratic Sieve (QS) algorithm** aims to find numbers $x, y$ such that:
 
-Such a pair of numbers fulfill: $$ x^2 \equiv y^2 \pmod{N} \implies (x-y)(x+y) \equiv 0 \pmod{N} $$ and therefore, the untrivial factors of $N$ can be obtained via the greatest common divisor: $$\gcd{(x-y, N)} \text{ and } \gcd{(x+y, N)}$$
+$$x^2 \equiv y^2 \pmod{N} \text{ and } x \not\equiv\pm  y \pmod{N}$$
+
+Such a pair of numbers fulfill:
+
+$$x^2 \equiv y^2 \pmod{N} \implies (x-y)(x+y) \equiv 0 \pmod{N}$$
+
+and therefore, the untrivial factors of $N$ can be obtained via the greatest common divisor: $$\gcd{(x-y, N)} \text{ and } \gcd{(x+y, N)}$$
 
 The main idea of QS is to find values of $x$ for which $Q(x) = x^2 - N$ factors completely over the factor base – a set of prime numbers less than some bound $B$. For a prime number $p$ to be in the factor base, two things must be true:
 
