@@ -17,9 +17,15 @@ https://www.math.unl.edu/~mbrittenham2/classwk/445f08/dropbox/landquist.quadrati
 
 $n$ is the number to be factored. 
 
-The QS looks for numbers $x,y$ such that $$x\not\equiv\pm y \pmod{n}\quad\land\quad x^2\equiv y^2\pmod{n}.$$
+The QS looks for numbers $x,y$ such that 
 
-This is because, such numbers $x,y$ untrivially fulfill $$(x-y)(x+y)\equiv 0\pmod{n},$$ suggesting that $(x\pm y)$ might contain divisors of $n$, which is tested with $\gcd{(x-y,n)}$.
+$$x\not\equiv\pm y \pmod{n}\quad\land\quad x^2\equiv y^2\pmod{n}.$$
+
+This is because, such numbers $x,y$ untrivially fulfill
+
+$$(x-y)(x+y)\equiv 0\pmod{n},$$
+
+suggesting that $(x\pm y)$ might contain divisors of $n$, which is tested with $\gcd{(x-y,n)}$.
 
 *Note: $\gcd{}$ is implemented with Euclidian Division.*
 
@@ -43,13 +49,24 @@ This is because, such numbers $x,y$ untrivially fulfill $$(x-y)(x+y)\equiv 0\pmo
 
 ### Discovering $x,y$
 
-To efficiently find perfect squares $x_f^2,y_f^2$ that fulfill $x_f^2\equiv y_f²\pmod{n}$, the QS utilizes a trick by defining $$Q(x)=(x+\lfloor\sqrt{n}\rfloor)^2-n=\tilde{x}^2-n,$$
+To efficiently find perfect squares $x_f^2,y_f^2$ that fulfill $x_f^2\equiv y_f²\pmod{n}$, the QS utilizes a trick by defining
 
-noting that $$Q(x)\equiv \tilde{x}^2\pmod{n}\quad\forall x.$$
+$$Q(x)=(x+\lfloor\sqrt{n}\rfloor)^2-n=\tilde{x}^2-n,$$
 
-We then compute $\mathbb{Q}=\{Q(x_i),\cdots\}$ for many $x_i$, and find subsets $\mathbb{Q}^*\subset\mathbb{Q}$ such that $$\prod_{Q(x_j)\in\mathbb{Q}^*}{Q(x_j)}=y_f^2$$
-is a perfect square. Now, since $Q(x)\equiv\tilde{x}^2\pmod{n}$, $$\left(\prod_{Q(x_j)\in\mathbb{Q}^*}{Q(x_j)}\right)\equiv\tilde{x}_{j_1}^2\tilde{x}_{j_2}^2\cdots\pmod{n}$$
+noting that
+
+$$Q(x)\equiv \tilde{x}^2\pmod{n}\quad\forall x.$$
+
+We then compute $\mathbb{Q}=\{Q(x_i),\cdots\}$ for many $x_i$, and find subsets $\mathbb{Q}^*\subset\mathbb{Q}$ such that
+
+$$\prod_{Q(x_j)\in\mathbb{Q}^*}{Q(x_j)}=y_f^2$$
+
+is a perfect square. Now, since $Q(x)\equiv\tilde{x}^2\pmod{n}$,
+
+$$\left(\prod_{Q(x_j)\in\mathbb{Q}^*}{Q(x_j)}\right)\equiv\tilde{x}_{j_1}^2\tilde{x}_{j_2}^2\cdots\pmod{n}$$
+
 $$=(\tilde{x}_{j_1}\tilde{x}_{j_2})^2\pmod{n}=x_f^2\pmod{n}$$
+
 and thus $x_f²=y_f^2\pmod{n}$, which is the pair we were looking for! Now, how do we find appropriate $x_i$?
 
 ### Sieve setup
@@ -60,18 +77,23 @@ The factor base consists of every prime number up until some bound $B$ we have p
 
 We ensure $Q(x)$ are small by bounding $x$ to lie inside the **sieving interval**, $x\in[-M,M]$.
 
-If $x$ lies in the sieving interval, and if some prime $p$ divides $Q(x)$, we note that $$\tilde{x}^2\equiv n\pmod{p},$$
+If $x$ lies in the sieving interval, and if some prime $p$ divides $Q(x)$, we note that
 
-which is known as $n$ being a **quadratic residue mod $p$**. The Legendre Symbol $$\left(\frac{n}{p}\right)=\begin{cases}1\,&\text{if $n$ is a quadratic residue mod $p$}\\0\,&\text{if $p|n$}\\-1\,&\text{otherwise}\end{cases}$$ encodes whether $n$ is a quadratic residue mod $p$ for **any** $\tilde{x}$. For primes for which $n$ is not a quadratic residue mod $p$, we know that $Q(x)$ will never be divisible by $p$ for any $x$, and therefore useless for our algorithm. QS uses Euler’s criterion as a way to compute the Legendre symbol and filter out such primes.
+$$\tilde{x}^2\equiv n\pmod{p},$$
 
-Euler’s Criterion states that for an odd prime $p$ and an integer $a$ not divisible by $p$, $$\left( \frac{a}{p} \right) \equiv a^{\frac{p-1}{2}} \pmod{p}.$$ In other words,
-$$
-a^{\frac{p-1}{2}} \equiv
-\begin{cases}
-1 & \text{if } a \text{ is a quadratic residue mod } p, \\
--1 & \text{if } a \text{ is a nonresidue mod } p.
-\end{cases}
-$$
+which is known as $n$ being a **quadratic residue mod $p$**. The Legendre Symbol 
+
+$$\left(\frac{n}{p}\right)=\begin{cases}1\,&\text{if $n$ is a quadratic residue mod $p$}\\0\,&\text{if $p|n$}\\-1\,&\text{otherwise}\end{cases}$$
+
+encodes whether $n$ is a quadratic residue mod $p$ for **any** $\tilde{x}$. For primes for which $n$ is not a quadratic residue mod $p$, we know that $Q(x)$ will never be divisible by $p$ for any $x$, and therefore useless for our algorithm. QS uses Euler’s criterion as a way to compute the Legendre symbol and filter out such primes.
+
+Euler’s Criterion states that for an odd prime $p$ and an integer $a$ not divisible by $p$,
+
+$$\left( \frac{a}{p} \right) \equiv a^{\frac{p-1}{2}} \pmod{p}.$$
+
+In other words,
+
+$$ a^{\frac{p-1}{2}} \equiv \begin{cases} 1 & \text{if } a \text{ is a quadratic residue mod } p, \\ -1 & \text{if } a \text{ is a nonresidue mod } p. \end{cases} $$
 
 *Note: negative numbers are included by including $-1$ in the factor base.*
 
@@ -87,15 +109,17 @@ Instead of testing every $Q(x)$ one by one (which is slow), we use a sieving tri
 
 First, we find where each prime number $p$ from the factor base divides $Q(x)$.
 For every prime $p$ in the factor base, we find all $x$ such that:
+
 $$x^2 ≡ n \pmod{p}$$
+
 These are the **roots** $\pmod{p}$.  
 For each root $r$, every $x ≡ r \pmod{p}$ will make $p | (x^2 − n)$. So, $p$ divides $Q(x)$ for a whole arithmetic sequence of $x$’s:
+
 $$x = r, r + p, r + 2p, ...$$
 
 If $Q(x)$ is the product of some primes from the factor base, then the logarithm of $Q(x)$ is the sum of the logarithms of these primes:
-$$
-Q(x) = p_1 * p_2 * p_3 * ... \Rightarrow \ln(Q(x)) = \ln(p_1) + \ln(p_2) + \ln(p_3) + ...
-$$
+
+$$ Q(x) = p_1 * p_2 * p_3 * ... \Rightarrow \ln(Q(x)) = \ln(p_1) + \ln(p_2) + \ln(p_3) + ... $$
 
 With that in mind, we calculate $\ln(Q(x))$ for every $Q(x)$. Each time a prime $p$ divides one of those $Q(x)$, we subtract $\ln(p)$ from the corresponding $\ln(Q(x))$ - if $p^k$ $Q(x)$, we subtract $k * \ln(Q(x))$. If $Q(x)$ factors completely over the factor base, the value of $\ln(Q(x))$ will be theoretically reduced to $0$.
 After we process all the primes from the factor base, the $Q(x)$'s whose corresponding $\ln(Q(x))$ values have been reduced to $0$ (or close to $0$) are the ones that are smooth - or almost smooth. These values are the ones we are interested in.
@@ -114,7 +138,11 @@ If $Q(x)$ is $B$-smooth, then we put the exponents (mod 2) of the primes in the 
 
 We can represent this problem as determining bits $e_i\in\{0,1\}$ such that
 $$\sum_{i=0}^k\vec{a_i}e_i=\vec{0}\pmod{2},$$
-where $k$ is the number of prime factors, and $\vec{a_i}$ a row in $A$. Equivalently: $$\vec{e}A=\vec{0}\pmod{2},$$
+
+where $k$ is the number of prime factors, and $\vec{a_i}$ a row in $A$. Equivalently:
+
+$$\vec{e}A=\vec{0}\pmod{2},$$
+
 where $\vec{e}=(e_1,e_2,\dots,e_k)$.
 
 ### Finding $\mathbb{Q}^*$ and factor testing
@@ -127,7 +155,11 @@ So, finally, we test whether the subsets yield a factor of $n$ with GCD. For RSA
 
 *Note: there may be several subsets $\mathbb{Q}^*$, and hopefully there are, since some may not give factors of $n$.*
 
-*Note: since at least half of the relations from the solution space will give a proper factor, if the factor base has $B$ elements and we have $R=B+k$ values $Q(x)$, then the probability of finding a proper factor is $$1-1/2^k,$$ or, for instance, $1023/1024\approx 0.999$ if $k=10$.*
+*Note: since at least half of the relations from the solution space will give a proper factor, if the factor base has $B$ elements and we have $R=B+k$ values $Q(x)$, then the probability of finding a proper factor is*
+
+$$1-1/2^k,$$
+
+*or, for instance, $1023/1024\approx 0.999$ if $k=10$.*
 
 ## QS optimizations
 
@@ -143,7 +175,11 @@ In the basic QS algorithm, a value $Q(x) = x^2 - N$ is only accepted if it is co
 
 The basic QS algorithm "discards" these partial relations. However, the 1LP variant takes advantage of them. Essentially, the 1LP variant accepts values $Q(x)$ that contain exactly one prime factor greater than $B$ and stores them temporarily. Then, it combines one partial relation with another that shares the same large prime. When two such relations are multiplied together, they produce a "_full_ relation" that can be used in the exponent matrix in the next step of the algorithm.
 
-When we multiply the two $Q(x)$ values: $$ Q(x_1) * Q(x_2) = (x^1_2−N)(x^2_2−N) $$ each has a factor of the same large prime $p$. That way, the exponent of $p$ becomes an even number (more specifically $2$) and therefore cancels out, as we use modulo $2$ in the exponent vector. This way, the product of $Q(x_1)$ and $Q(x_2)$ becomes $B$-smooth.
+When we multiply the two $Q(x)$ values:
+
+$$ Q(x_1) * Q(x_2) = (x^1_2−N)(x^2_2−N) $$
+
+each has a factor of the same large prime $p$. That way, the exponent of $p$ becomes an even number (more specifically $2$) and therefore cancels out, as we use modulo $2$ in the exponent vector. This way, the product of $Q(x_1)$ and $Q(x_2)$ becomes $B$-smooth.
 
 In short, two partial relations with the same large prime can be combined into one full relation.
 
