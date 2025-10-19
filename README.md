@@ -328,6 +328,14 @@ Both ran on 14 cores. The difference in processor speed is likely significant, b
 
 \[1\]: https://maxwellmlin.com/assets/pdf/sieve-2024.pdf
 
+#### Factoring a big number
+
+With our implementation, we successfully factored the 50-digit (166-bit) number 
+
+$$50723084630060403428320713134005093883219004564041$$
+$$=9617731528159385813634239 * 5273913550357507590646519.$$
+
+The sieving took 8 hours with 8 cores @ 2 GHz. The subsequent linear algebra took only 2 minutes.
 ## Mitigation/Defense against the attack
 
 The FREAK attack exploited a vulnerability in the TLS protocol, specifically support for weak export-grade RSA cipher suites. Moreover, flaws in the implementation of the TLS protocol in both clients and servers made the attack feasible. While export RSA cipher suites are no longer used and the specific vulnerabilities exploited by FREAK have been patched, the attack still serves as a valuable lesson in the importance of robust protocol design and implementation. The following measures can help mitigate or defend against similar attacks:
