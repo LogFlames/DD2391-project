@@ -324,7 +324,7 @@ To judge how good our implementation is, we compared it with an optimized implem
 |92|28|4212175936999023767107554923|423 ms|3.33 s|
 |133|40|6119490005682428418384261292866412370269|31.3 s|328.75 s|
 
-Both ran on 14 cores - the difference in processor speed is assumed to be insignificant. As can be seen, our implementation is approximately 0.1x the speed of the optimized C implementation, which is an okay score for Python!
+Both ran on 14 cores. The difference in processor speed is likely significant, but not accounted for (the average processor speed on our computer was 2 GHz). As can be seen, our implementation is at least 0.1x the speed of the optimized C implementation, which is an okay score for Python!
 
 \[1\]: https://maxwellmlin.com/assets/pdf/sieve-2024.pdf
 
@@ -421,11 +421,11 @@ The [flood.c](dns_cache_poisoning/attack/flood.c) was initially structed by the 
 * Together with Ioanna, wrote [factorization/math.md](factorization/math.md) to understand and make transparent the math behind the Quadratic Sieve.
 * Implemented the linear algebra for the Quadratic Sieve, in particular steps 5 and 6 in [factorization/src/qslib/base.py](factorization/src/qslib/base.py). Little to no LLM:s were used for this.
 * Put the Quadratic Sieve together and verified the execution process.
-* Optimized the Quadratic Sieve (with numpy, SageMath and parallelization) *LLM:s were used for this!*
-* Tried many more optimizations, including numba (njit/jit), further numpy optimizations, parallelization variants (such as multithreading without Python's GIL), and SageMath (external). *LLM:s were used for this!*
-* Refactored and deduplicated the code to make transparent everything behind our implementation of the Quadratic Sieve, see [factorization/qslib](factorization/src/qslib/).
+* Optimized the Quadratic Sieve (with numpy, SageMath and parallelization).
+* Tried many more optimizations, including numba (njit/jit), further numpy optimizations, parallelization variants (such as multithreading without Python's GIL), and SageMath (external).
+* Refactored and deduplicated the code to make transparent everything behind our implementation of the Quadratic Sieve, see [factorization/src/qslib](factorization/src/qslib/).
 * Wrote an [extensive interface](factorization/src/quadratic_sieve.py) for interaction with the Quadratic Sieve and the various variants we have tried. See [factorization/readme.md](factorization/readme.md) for details.
-* Wrote interfaces to interact with the RSA modulus and prepare a private key from a public key, see [factorization/break_rsa.py](factorization/break_rsa.py). *LLM:s were used for this!*
+* Wrote interfaces to interact with the RSA modulus and prepare a private key from a public key, see [factorization/break_rsa.py](factorization/break_rsa.py).
 * Hunted all the bugs associated with the above.
 
 ### Venetia Ioanna Papadopoulou
