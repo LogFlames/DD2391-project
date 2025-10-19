@@ -266,7 +266,7 @@ In this demo the only encrypted messages are the Finished messages, but as the c
 
 The Quadratic Sieve can be interacted with via
 ```bash
-$ cd factorization
+$ cd ./factorization
 $ N="730263881119727212489103570233" # 100-bit number with two large prime factors
 
 # factor N
@@ -281,7 +281,7 @@ $ python3 run.py factor --bits 100 -J 8
 
 To factorize a number for the attack and subsequently find the RSA private exponent, we run:
 ```bash
-$ cd factorization/
+$ cd ./factorization
 $ python3 break_rsa.py -N "<RSA modulus here>" -e "<RSA public exponent here>"
 ```
 
@@ -289,7 +289,7 @@ This of course won't actually work, since RSA moduli are too large to factor wit
 
 For more information on how to use the programs, run:
 ```bash
-$ cd factorization/
+$ cd ./factorization
 $ python run.py -h
 $ python break_rsa.py -h
 ```
@@ -299,13 +299,30 @@ Find out more in [factorization/readme.md](factorization/readme.md).
 
 The Quadratic Sieve should only be used for small enough numbers. It is the fastest for numbers with less than 100 digits (330 bits) but that doesn't mean it is fast with such numbers: that would require parallelization across computers and more efficient code than we have written, and preferably not Python code.
 
-Our implementation is reasonable for numbers with less than 150 bits, and fast for numbers with less than 120 bits. An estimated running time can be achieved by running the algorithm against an input (use the number of chunks, $-1$). This may still crash with large enough inputs!
+Our implementation is reasonable for numbers with less than 150 bits, and fast for numbers with less than 120 bits. An estimated running time can be achieved by running the algorithm against an input (use $-1$ as the number of chunks). This may still crash with large enough inputs!
 
 For example, on our computer (8 cores, ~4 GHz, 16 GB RAM):
 
 * 200 bits takes 5 hours.
 * 220 bits takes 75 hours.
 * 250 bits crashes.
+
+#### Comparing our implementation to better implementations
+
+To judge how good our implementation is, we compared it with an optimized implementation in C \[1\]. These are the results:
+
+|Bits|Digits|N|Time taken (C)|Time taken (our)|
+|:--|:--|:-:|:-:|:-:|
+|40|12|736055622283|2 ms|24 ms|
+|53|16|5479839591439397|8 ms|56 ms|
+|67|20|92905709270744788219|13 ms|160 ms|
+|76|23|60381558672724747724459|25 ms|1.38 s|
+|92|28|4212175936999023767107554923|423 ms|3.33 s|
+|133|40|6119490005682428418384261292866412370269|31.3 s|328.75 s|
+
+Both ran on 14 cores - the difference in processor speed is assumed to be insignificant. As can be seen, our implementation is approximately 0.1x the speed of the optimized C implementation, which is an okay score for Python!
+
+\[1\]: https://maxwellmlin.com/assets/pdf/sieve-2024.pdf
 
 ## Mitigation/Defense against the attack
 
