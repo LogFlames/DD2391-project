@@ -432,11 +432,11 @@ The [flood.c](dns_cache_poisoning/attack/flood.c) was initially structed by the 
 
 * Together with Eskil, did plenty of research to understand the inner workings and correct implementation of the Quadratic Sieve algorithm, along with potential optimizations of various kinds.
 * Together with Eskil, wrote [factorization/math.md](factorization/math.md) to understand and make transparent the math behind the Quadratic Sieve.
-<!---IOANNA: Change this if you want!
---->
-
-<!---TODO
---->
+* Implemented steps 2, 3 and 4 of the Quadratic Sieve algorithm that build the factor base using Euler’s criterion, conduct the sieving part to find probable B-smooth numbers, factorize them completely over the factor base and create the exponent vectors.
+* Did research and read papers to understand the “1-Large-Prime” variant of the Quadratic Sieve algorithm, as well as wrote an implementation for it.
+* Researched the Tonelli-Shanks algorithm for finding square roots modulo $p$, but ended up not implementing it as an existing library function sufficed for the needs of the project.
+* Touched upon the General Number Field Sieve (GNFS) algorithm, but decided it was out of scope for this project due to its mathematical complexity.
+* Performed the initial topic research for the FREAK attack (background reading to decide if it was fit for a project topic and then presented it to the rest of the team).
 
 ## Presentation material
 
