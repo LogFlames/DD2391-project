@@ -65,10 +65,20 @@ Following is technical and theoretical background regarding the attack and the t
 
 ### About RSA
 
-Eskil and Ioanna
+RSA is one of the most widely used asymmetric encryption algorithms and relies on the mathematical difficulty of factoring (large) integer factorization. It uses two keys – one public and one private. The public key is used for encryption and is known to everyone, while the private key is used for decryption and must be known only by its owner.
+The security of RSA relies on the fact that, given a composite number $N=p \times q$, where $p$ and $q$ are prime numbers, it is computationally infeasible to find $p$ and $q$ from $N$ alone.
 
-<!---TODO
---->
+The algorithm begins with two large prime numbers, $p$ and $q$, that produce the RSA modulus $N$ when multiplied together. Then, Euler’s totient function: $$\varphi(N) = (p-1)(q-1)$$ is calculated. $\varphi(N)$ represents the number of positive integers that are less than or equal to $N$ and are relatively prime to it.
+
+The encryption (public) exponent $e$ is chosen such that $1<e<\varphi(N)$ and $\gcd{(e,\varphi(N))} = 1$, meaning $e$ and $\varphi(N)$ are co-primes
+The decryption exponent d is calculated such that it satisfies $e \times d \equiv 1 \pmod{\varphi(N)}$, meaning that $d$ is modular multiplicative inverse of $e \pmod{\varphi(N)}$.
+
+Finally, the Public Key = $(N, e)$ and the Private Key = $(N, d)$.
+The encryption of a message $M$ is performed as $C = M^e \pmod{N}$, and the decryption as $M = C^d \pmod{N}$.
+
+Since $(d \times e) \equiv 1 \pmod{\varphi(N)}$, if we can calculate $\varphi(N)$ then we can find the value of $d$. But to calculate $\varphi(N)$ we need $p$ and $q$ – since $\varphi(N) = (p-1)(q-1)$.
+
+Therefore, by succeeding in factoring $N$ into its prime components $p$ and $q$, the security collapses and the attacker can decrypt any ciphertext encrypted with this private key. That is what made the FREAK attack possible – the successful factorization of the weak 512-bit RSA export keys.
 
 ### DNS Cache Poisoning
 
