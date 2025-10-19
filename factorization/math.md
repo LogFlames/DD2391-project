@@ -57,7 +57,7 @@ noting that
 
 $$Q(x)\equiv \tilde{x}^2\pmod{n}\quad\forall x.$$
 
-We then compute $\mathbb{Q}=\{Q(x_i),\cdots\}$ for many $x_i$, and find subsets $\mathbb{Q}^*\subset\mathbb{Q}$ such that
+We then compute $\mathbb{Q}=\{Q(x_i),...\}$ for many $x_i$, and find subsets $\mathbb{Q}^* \subset \mathbb{Q}$ such that
 
 $$\prod_{Q(x_j)\in\mathbb{Q}^*}{Q(x_j)}=y_f^2$$
 
@@ -83,7 +83,7 @@ $$\tilde{x}^2\equiv n\pmod{p},$$
 
 which is known as $n$ being a **quadratic residue mod $p$**. The Legendre Symbol 
 
-$$\left(\frac{n}{p}\right)=\begin{cases}1\,&\text{if $n$ is a quadratic residue mod $p$}\\0\,&\text{if $p|n$}\\-1\,&\text{otherwise}\end{cases}$$
+$$\left(\frac{n}{p}\right)=\begin{cases}1\,&\text{if $n$ is a quadratic residue mod $p$}\\ 0 \,&\text{if $p|n$}\\ -1 \,&\text{otherwise}\end{cases}$$
 
 encodes whether $n$ is a quadratic residue mod $p$ for **any** $\tilde{x}$. For primes for which $n$ is not a quadratic residue mod $p$, we know that $Q(x)$ will never be divisible by $p$ for any $x$, and therefore useless for our algorithm. QS uses Euler’s criterion as a way to compute the Legendre symbol and filter out such primes.
 
