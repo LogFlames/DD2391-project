@@ -70,7 +70,7 @@ The security of RSA relies on the fact that, given a composite number $N=p \time
 
 The algorithm begins with two large prime numbers, $p$ and $q$, that produce the RSA modulus $N$ when multiplied together. Then, Euler’s totient function: $$\varphi(N) = (p-1)(q-1)$$ is calculated. $\varphi(N)$ represents the number of positive integers that are less than or equal to $N$ and are relatively prime to it.
 
-The encryption (public) exponent $e$ is chosen such that $1<e<\varphi(N)$ and $\gcd{(e,\varphi(N))} = 1$, meaning $e$ and $\varphi(N)$ are co-primes
+The encryption (public) exponent $e$ is chosen such that $1<e<\varphi(N)$ and $\gcd{(e,\varphi(N))} = 1$, meaning $e$ and $\varphi(N)$ are co-primes.
 The decryption exponent d is calculated such that it satisfies $e \times d \equiv 1 \pmod{\varphi(N)}$, meaning that $d$ is modular multiplicative inverse of $e \pmod{\varphi(N)}$.
 
 Finally, the Public Key = $(N, e)$ and the Private Key = $(N, d)$.
@@ -96,7 +96,7 @@ If we are on the same network, we can sniff the DNS request and read both the tr
 
 If we are on a different network things become a bit more complicated. We have to guess both values. The transaction ID is a 16-bit number, and the port number is also a 16-bit number. The port number was usually a fixed port on older DNS server, but is being randomized for modern systems for security, similar to ASLR. To make the attack easier for our demonstration we set a fixed port number (see [named.conf.options:L8](https://github.com/LogFlames/DD2391-project/blob/6cbb1abdb9bbd189f7668d947fa74f0259bc636b/dns_cache_poisoning/dns_server/named.conf.options#L8)), however the same brute-forcing can be applied to the port as well as the transaction ID, it will just take longer. The transaction ID is being brute-forced. We wrote a C script ([flood.c](dns_cache_poisoning/attack/flood.c)) to efficiently generate and send UDP packets. Since the real server usually responds in a couple of milliseconds, the attack succedes if the transaction ID is lower (tested earlier in our attack script). The script must also generate manuall UDP packets to be able to pretend they originate from the IP that the DNS server expects (9.9.9.9 in our case).
 
-Additionally, for the DNS cache poisoning to work we must disable DNSSEC. DNSSEC is a security extension formalized in 2004 (RFC3833), which add signatures to ensure only valid DNS responses are considered. There are however many DNS server today which do not use DNSSEC.
+Additionally, for the DNS cache poisoning to work we must disable DNSSEC. DNSSEC is a security extension formalized in 2004 (RFC3833), which adds signatures to ensure only valid DNS responses are considered. There are however many DNS server today which do not use DNSSEC.
 
 There are other ways to get a MitM attack. Two prominent alternatives are ARP spoofing and DHCP spoofing, both done on local networks.
 
@@ -126,7 +126,7 @@ Another important flaw that made the attack possible was the reuse of the tempor
 
 ### Factorization
 
-To break the RSA key, we want to factorize the modulus of the public key so that we can compute the private key. The modulus is on the form $N=p*q$, where $p$ and $q$ are large primes. For **FREAK** in particular, the modulus is 512 bits (155 digits) and would require the employment of the algorithm **GNFS, the General Number Field Sieve** which is the fastest known algorithm for factoring large numbers. However, the GNFS is both:
+To break the RSA key, we want to factorize the modulus of the public key so that we can compute the private key. The modulus is on the form $N=p \times q$, where $p$ and $q$ are large primes. For **FREAK** in particular, the modulus is 512 bits (155 digits) and would require the employment of the algorithm **GNFS, the General Number Field Sieve** which is the fastest known algorithm for factoring large numbers. However, the GNFS is both:
 
 * incredibly difficult, both to understand and to implement, requiring knowledge of number theory far beyond what we have learnt previously
 * expensive, costing about $100 in cloud resources to factorize a 512-bit RSA (with the most efficient implementations known)
@@ -165,8 +165,8 @@ We are looking for a subset of rows such that the sum of each exponent is congru
 
 An obvious optimization is **parallelization**. To parallelize, we split the sieving interval into many small chunks and send out the sieving tasks to several workers - which can live on different computers. This splitting also makes sieving large intervals manageable on single computers, and not all chunks have to be done concurrently.
 
-The **One-Large-Prime (1LP) variant** is an optimization of the basic QS algorithm. In the basic QS, only values $Q(x)$ that are completely $B$-smooth (_full_ relations) are accepted, whereas the 1LP variant also accepts _partial_ relations – $Q(x)$ values that factor over the factor base except for one extra “large” prime slightly above the bound $B$.
-These partial relations are stored and temporarily and latered combined into pairs that share the same large prime. When two partial relations are multiplied together, the large prime acquires an even exponent that cancels out $\pmod{2}$, thus producing a full relation.
+The **One-Large-Prime (1LP) variant** is an optimization of the basic QS algorithm. In the basic QS, only $Q(x)$ values that are completely $B$-smooth (_full_ relations) are accepted, whereas the 1LP variant also accepts _partial_ relations – $Q(x)$ values that factor over the factor base except for one extra “large” prime slightly above the bound $B$.
+These partial relations are stored temporarily and later combined into pairs that share the same large prime. When two partial relations are multiplied together, the large prime acquires an even exponent that cancels out $\pmod{2}$, thus producing a full relation.
 This way, the number of usable relations is increased without great computational increase.
 
 Lastly, there is the **Multi-Polynomial Quadratic Sieve (QLP)** which replaces $Q(x)=(x+sqrt(N))^2-N$ with several polynomials on the form $(ax+b)^2-N$, where $a,b$ are chosen to keep the numbers smaller. This variant is not implemented by us.
