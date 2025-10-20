@@ -459,4 +459,4 @@ Google Slides: [DD2391 Project - Final Group 18 - FREAK](https://docs.google.com
 
 ## 'submission' commit
 
-The 'submission' commit is [%TODO](%TODO)
+The 'submission' commit is [ded5119](https://github.com/LogFlames/DD2391-project/commit/ded511983e1ed8ed4f6811e1f7a2be490b6d7b42).
