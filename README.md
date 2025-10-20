@@ -32,6 +32,7 @@
 1. [**Notice on the usage of LLM:s, AI and borrowed code**](#notice-on-the-usage-of-llms-ai-and-borrowed-code)
 2. [**Contribution documentation**](#contribution-documentation)
 3. [**Presentation material**](#presentation-material)
+4. [**'submission' commit**](#submission-commit)
 
 ### Directory structure
 
@@ -455,3 +456,7 @@ The [flood.c](dns_cache_poisoning/attack/flood.c) was initially structed by the 
 ## Presentation material
 
 Google Slides: [DD2391 Project - Final Group 18 - FREAK](https://docs.google.com/presentation/d/1Ma8DdMEyfZuG2-iaYIO6c-XB07Kh5vx1UhjnjDeAjVI/edit?usp=sharing)
+
+## 'submission' commit
+
+The 'submission' commit is [%TODO](%TODO)
