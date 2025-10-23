@@ -378,6 +378,7 @@ DNS Cache Poisoning:
 - https://datatracker.ietf.org/doc/html/rfc1035
 - https://gieseanw.wordpress.com/2010/03/25/building-a-dns-resolver/
 - https://gist.github.com/leonid-ed/909a883c114eb58ed49f
+- https://spectrum.ieee.org/fresh-phish
 
 Factorization / Quadratic Sieve:
 
